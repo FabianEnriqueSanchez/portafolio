@@ -1,0 +1,193 @@
+---
+import { perfil } from "../data/site";
+import { withBase } from "../lib/utils";
+---
+
+<section id="inicio" class="hero section">
+  <div class="container hero-grid">
+    <div class="hero-content reveal">
+      <p class="eyebrow">{perfil.rol} · {perfil.ubicacion}</p>
+      <h1 class="hero-title">{perfil.titular}</h1>
+      <p class="hero-sub">{perfil.resumen}</p>
+
+      <div class="hero-cta">
+        <a href="#proyectos" class="btn btn-primary">
+          Ver proyectos
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"></path>
+          </svg>
+        </a>
+        {
+          perfil.social.cv && (
+            <a href={withBase(perfil.social.cv)} class="btn btn-ghost" download>
+              Descargar CV
+            </a>
+          )
+        }
+      </div>
+
+      <div class="hero-social">
+        {
+          perfil.social.github && (
+            <a href={perfil.social.github} class="social-link" aria-label="GitHub" target="_blank" rel="noopener">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A12 12 0 0 0 0 12.6c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.4-5.5-6 0-1.3.5-2.4 1.2-3.2 0-.3-.5-1.5.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 24 12.6 12 12 0 0 0 12 .5z"></path></svg>
+            </a>
+          )
+        }
+        {
+          perfil.social.linkedin && (
+            <a href={perfil.social.linkedin} class="social-link" aria-label="LinkedIn" target="_blank" rel="noopener">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.74v20.52C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"></path></svg>
+            </a>
+          )
+        }
+        {
+          perfil.email && (
+            <a href={`mailto:${perfil.email}`} class="social-link" aria-label="Correo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    <!-- Tarjeta decorativa tipo terminal -->
+    <div class="hero-visual reveal" aria-hidden="true">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span></span><span></span><span></span>
+        </div>
+        <pre class="terminal-body"><code><span class="t-prompt">~$</span> python api/main.py --serve
+<span class="t-ok">✔</span> Conexión a base de datos    <span class="t-dim">OK</span>
+<span class="t-ok">✔</span> Rutas REST registradas      <span class="t-dim">12</span>
+<span class="t-ok">✔</span> Automatizaciones activas    <span class="t-dim">OK</span>
+<span class="t-dim">→</span> API escuchando en <span class="t-ok">:8000</span>
+<span class="t-prompt">~$</span> <span class="cursor">▌</span></code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  .hero-title {
+    font-size: var(--text-4xl);
+    margin-top: 1rem;
+    max-width: 16ch;
+  }
+
+  .hero-sub {
+    margin-top: 1.4rem;
+    color: var(--muted);
+    font-size: var(--text-lg);
+    max-width: 48ch;
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .hero-social {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 2rem;
+  }
+
+  .social-link {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
+  }
+
+  .social-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* Terminal decorativa */
+  .terminal {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .terminal-bar {
+    display: flex;
+    gap: 0.45rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+
+  .terminal-bar span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .terminal-body {
+    margin: 0;
+    padding: 1.2rem 1.25rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--text);
+    overflow-x: auto;
+  }
+
+  .t-prompt {
+    color: var(--accent);
+  }
+  .t-ok {
+    color: var(--accent);
+  }
+  .t-dim {
+    color: var(--faint);
+  }
+
+  .cursor {
+    animation: parpadeo 1.1s steps(2, start) infinite;
+    color: var(--accent);
+  }
+
+  @keyframes parpadeo {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-visual {
+      order: -1;
+    }
+    .hero-title {
+      max-width: 20ch;
+    }
+  }
+</style>

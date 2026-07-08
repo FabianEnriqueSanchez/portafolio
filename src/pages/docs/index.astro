@@ -1,0 +1,137 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { withBase } from "../../lib/utils";
+
+const docs = (await getCollection("docs")).sort(
+  (a, b) => a.data.orden - b.data.orden
+);
+---
+
+<BaseLayout
+  titulo="Documentación — Portafolio"
+  descripcion="Documentación técnica de los proyectos."
+>
+  <Header />
+  <main id="contenido" class="section">
+    <div class="container docs-wrap">
+      <header class="docs-head">
+        <p class="eyebrow">Documentación</p>
+        <h1 class="section-title">Guías y referencias de los proyectos</h1>
+        <p class="section-intro">
+          Documentación técnica de cada proyecto: instalación, configuración,
+          endpoints y ejemplos.
+        </p>
+      </header>
+
+      {
+        docs.length === 0 ? (
+          <p class="docs-empty">
+            Aún no hay documentos. Crea un archivo <code>.md</code> en{" "}
+            <code>src/content/docs/</code>.
+          </p>
+        ) : (
+          <ul class="docs-list">
+            {docs.map((doc) => (
+              <li>
+                <a href={withBase(`docs/${doc.id}`)} class="doc-card">
+                  <div class="doc-card-body">
+                    <h2 class="doc-card-title">{doc.data.titulo}</h2>
+                    <p class="doc-card-desc">{doc.data.descripcion}</p>
+                    {doc.data.actualizado && (
+                      <span class="doc-card-date">
+                        Actualizado: {doc.data.actualizado}
+                      </span>
+                    )}
+                  </div>
+                  <svg class="doc-card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .docs-wrap {
+    max-width: 820px;
+  }
+
+  .docs-head {
+    margin-bottom: 2.5rem;
+  }
+
+  .docs-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .doc-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem 1.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: border-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease);
+  }
+
+  .doc-card:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .doc-card-title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+  }
+
+  .doc-card-desc {
+    font-family: var(--font-sans);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    margin-top: 0.4rem;
+  }
+
+  .doc-card-date {
+    display: inline-block;
+    margin-top: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+
+  .doc-card-arrow {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .doc-card:hover .doc-card-arrow {
+    color: var(--accent);
+  }
+
+  .docs-empty {
+    color: var(--muted);
+  }
+
+  .docs-empty code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--bg-soft);
+    padding: 0.15rem 0.4rem;
+    border-radius: 5px;
+  }
+</style>

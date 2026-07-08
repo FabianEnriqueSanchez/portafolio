@@ -1,0 +1,183 @@
+---
+import { proyectos } from "../data/site";
+import { withBase } from "../lib/utils";
+---
+
+<section id="proyectos" class="section">
+  <div class="container">
+    <header class="proyectos-head reveal">
+      <p class="eyebrow">Trabajo</p>
+      <h2 class="section-title">Proyectos demo y documentación</h2>
+      <p class="section-intro">
+        Una selección de proyectos. Cada uno enlaza a su repositorio, demo en
+        vivo (si aplica) y documentación detallada.
+      </p>
+    </header>
+
+    <div class="proyectos-grid">
+      {
+        proyectos.map((p) => (
+          <article class={`card reveal ${p.destacado ? "card-destacado" : ""}`}>
+            <div class="card-top">
+              <span class="card-year">{p.año}</span>
+              {p.destacado && <span class="card-badge">Destacado</span>}
+            </div>
+
+            <h3 class="card-title">{p.titulo}</h3>
+            <p class="card-desc">{p.descripcion}</p>
+
+            <ul class="card-tags">
+              {p.tags.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+
+            <div class="card-links">
+              {p.repo && (
+                <a href={p.repo} class="card-link" target="_blank" rel="noopener">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A12 12 0 0 0 0 12.6c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.4-5.5-6 0-1.3.5-2.4 1.2-3.2 0-.3-.5-1.5.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 24 12.6 12 12 0 0 0 12 .5z" /></svg>
+                  Código
+                </a>
+              )}
+              {p.demo && (
+                <a href={p.demo} class="card-link" target="_blank" rel="noopener">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6" /><path d="M10 14 21 3" /></svg>
+                  Demo
+                </a>
+              )}
+              {p.doc && (
+                <a href={withBase(`docs/${p.doc}`)} class="card-link card-link-doc">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" /></svg>
+                  Documentación
+                </a>
+              )}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .section-alt {
+    background: var(--bg-soft);
+    border-block: 1px solid var(--border);
+  }
+
+  .proyectos-head {
+    margin-bottom: 2.75rem;
+  }
+
+  .proyectos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.6rem;
+    transition: border-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+
+  .card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+
+  .card-destacado {
+    grid-column: 1 / -1;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .card-year {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+
+  .card-badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+  }
+
+  .card-title {
+    font-size: var(--text-xl);
+  }
+
+  .card-desc {
+    color: var(--muted);
+    margin-top: 0.6rem;
+    font-size: var(--text-sm);
+    flex: 1;
+  }
+
+  .card-tags {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.2rem 0;
+  }
+
+  .card-tags li {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+  }
+
+  .card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-sm);
+    font-weight: 520;
+    color: var(--muted);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .card-link:hover {
+    color: var(--accent);
+  }
+
+  .card-link-doc {
+    color: var(--accent);
+  }
+
+  @media (max-width: 680px) {
+    .proyectos-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

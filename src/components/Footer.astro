@@ -1,0 +1,48 @@
+---
+import { perfil } from "../data/site";
+const año = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p class="footer-name">{perfil.nombre}</p>
+    <p class="footer-meta">
+      Hecho con <a href="https://astro.build" target="_blank" rel="noopener">Astro</a>
+      · © {año}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding-block: 2.5rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-name {
+    font-weight: 600;
+  }
+
+  .footer-meta {
+    color: var(--faint);
+    font-size: var(--text-sm);
+  }
+
+  .footer-meta a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .footer-meta a:hover {
+    color: var(--accent);
+  }
+</style>
