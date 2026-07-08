@@ -1,0 +1,2003 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Header from "../../../components/Header.astro";
+import Footer from "../../../components/Footer.astro";
+import { withBase } from "../../../lib/utils";
+
+// Endpoints que se muestran en el panel izquierdo. La lógica que los
+// simula vive en el <script> del final (mismos ids).
+const endpoints = [
+  {
+    id: "listar",
+    metodo: "GET",
+    ruta: "/datos",
+    descripcion:
+      "Lista los registros del almacén. Admite el filtro opcional ?tipo=.",
+  },
+  {
+    id: "crear",
+    metodo: "POST",
+    ruta: "/datos",
+    descripcion: "Crea un registro con body JSON { nombre, tipo, valor }.",
+  },
+  {
+    id: "detalle",
+    metodo: "GET",
+    ruta: "/datos/:id",
+    descripcion: "Devuelve el detalle de un registro concreto.",
+  },
+  {
+    id: "eliminar",
+    metodo: "DELETE",
+    ruta: "/datos/:id",
+    descripcion: "Elimina un registro del almacén.",
+  },
+  {
+    id: "integracion",
+    metodo: "POST",
+    ruta: "/integracion",
+    descripcion:
+      "Simula la sincronización con otro sistema (tarda ~1,5 s) y devuelve un resumen { enviados, aceptados }.",
+  },
+];
+---
+
+<BaseLayout
+  titulo="Explorador de la API de datos — Demo interactiva"
+  descripcion="Simulación interactiva de una API REST de gestión de datos empresariales: prueba endpoints, autenticación por token, validaciones y errores consistentes directamente en tu navegador."
+>
+  <Header />
+
+  <main id="contenido" class="demo-api" tabindex="-1">
+    <!-- Región que anuncia cada respuesta a lectores de pantalla -->
+    <div id="anuncio" class="visualmente-oculto" aria-live="polite"></div>
+
+    <section class="demo-hero">
+      <div class="container reveal">
+        <p class="eyebrow">Demo interactiva</p>
+        <h1 class="hero-title">Explorador de la API de datos — simulación</h1>
+        <p class="hero-lead">
+          Prueba el contrato de una API REST de gestión de datos empresariales:
+          endpoints, autenticación por token, validación estricta de entrada y
+          errores con estructura consistente. La API real es interna; esta
+          simulación reproduce su comportamiento.
+        </p>
+        <p class="aviso-demo">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4M12 8h.01"></path>
+          </svg>
+          <span>
+            Servidor simulado en tu navegador: los datos viven solo en esta
+            pestaña.
+          </span>
+        </p>
+        <div class="hero-enlaces">
+          <a class="btn btn-ghost" href={withBase("/") + "#proyectos"}
+            >← Volver a proyectos</a
+          >
+          <a class="btn btn-primary" href={withBase("docs/apis-datos/")}
+            >Documentación</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-cuerpo">
+      <div class="container">
+        <div class="demo-grid reveal">
+          <!-- ===== Panel izquierdo: endpoints ===== -->
+          <aside
+            class="panel panel-endpoints"
+            aria-label="Endpoints disponibles"
+          >
+            <div class="panel-cabecera">
+              <h2 class="panel-titulo">Endpoints</h2>
+              <span class="chip-version">v1</span>
+            </div>
+            <ul class="lista-endpoints" role="list">
+              {
+                endpoints.map((ep) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="endpoint-btn"
+                      data-endpoint={ep.id}
+                      aria-pressed={ep.id === "listar" ? "true" : "false"}
+                    >
+                      <span class={`met met-${ep.metodo.toLowerCase()}`}>
+                        {ep.metodo}
+                      </span>
+                      <span class="endpoint-info">
+                        <code class="endpoint-ruta">{ep.ruta}</code>
+                        <span class="endpoint-desc">{ep.descripcion}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))
+              }
+            </ul>
+          </aside>
+
+          <!-- ===== Panel derecho: probar la petición ===== -->
+          <section class="panel panel-tester" aria-label="Probar la petición">
+            <div class="panel-cabecera">
+              <h2 class="panel-titulo">Probar la petición</h2>
+              <p class="base-url">
+                Base: <code>https://api.interna.example</code>
+              </p>
+            </div>
+            <p class="desc-endpoint" id="desc-endpoint">
+              Lista los registros del almacén. Admite el filtro opcional ?tipo=.
+            </p>
+
+            <noscript>
+              <p class="texto-vacio">
+                Esta demo necesita JavaScript para simular el servidor. Actívalo
+                para probar las peticiones.
+              </p>
+            </noscript>
+
+            <form id="form-peticion" novalidate>
+              <div class="linea-ruta">
+                <span class="met met-get" id="metodo-actual">GET</span>
+                <span class="ruta-caja">
+                  <code id="ruta-texto">/datos</code><span id="grupo-id" hidden>
+                    <label class="visualmente-oculto" for="input-id"
+                      >Identificador del registro (parámetro :id de la ruta)</label
+                    >
+                    <input
+                      id="input-id"
+                      class="input-id"
+                      type="text"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="id"
+                      value="3"
+                    />
+                  </span>
+                </span>
+              </div>
+
+              <div id="grupo-query" class="campo">
+                <label for="input-tipo"
+                  >Parámetro de consulta <code>tipo</code> (opcional)</label
+                >
+                <input
+                  id="input-tipo"
+                  type="text"
+                  list="lista-tipos"
+                  placeholder="p. ej. inventario"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <datalist id="lista-tipos"></datalist>
+              </div>
+
+              <fieldset class="campo auth-fieldset">
+                <legend>Cabecera <code>Authorization</code></legend>
+                <div class="segmentos">
+                  <label class="segmento">
+                    <input
+                      type="radio"
+                      name="modo-auth"
+                      value="valido"
+                      checked
+                    />
+                    <span>Token válido</span>
+                  </label>
+                  <label class="segmento">
+                    <input type="radio" name="modo-auth" value="invalido" />
+                    <span>Token inválido</span>
+                  </label>
+                  <label class="segmento">
+                    <input type="radio" name="modo-auth" value="sin" />
+                    <span>Sin token</span>
+                  </label>
+                </div>
+                <p class="auth-vista">
+                  <code id="auth-vista"
+                    >Authorization: Bearer tok_demo_2026</code
+                  >
+                </p>
+              </fieldset>
+
+              <div id="grupo-body" class="campo" hidden>
+                <label for="input-body">Body JSON de la petición</label>
+                <textarea
+                  id="input-body"
+                  rows="6"
+                  spellcheck="false"
+                  autocomplete="off"
+                  placeholder={'{ "nombre": "…", "tipo": "…", "valor": 0 }'}
+                ></textarea>
+              </div>
+
+              <div class="campo curl-campo">
+                <div class="curl-cabecera">
+                  <span class="etiqueta-mono" id="curl-etiqueta"
+                    >Equivalente en cURL</span
+                  >
+                  <button
+                    type="button"
+                    id="btn-copiar-curl"
+                    class="btn-copiar"
+                    aria-label="Copiar comando cURL"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <pre
+                  class="curl-pre"
+                  tabindex="0"
+                  role="region"
+                  aria-labelledby="curl-etiqueta"><code id="curl-codigo" /></pre>
+              </div>
+
+              <div class="fila-envio">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-enviar"
+                  id="btn-enviar"
+                >
+                  <span id="btn-enviar-texto">Enviar petición</span>
+                  <span class="spinner" id="spinner" hidden aria-hidden="true"
+                  ></span>
+                </button>
+                <p class="atajo">
+                  También puedes enviar con <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                </p>
+              </div>
+            </form>
+
+            <div class="respuesta" id="panel-respuesta" aria-busy="false">
+              <h3 class="etiqueta-mono">Respuesta</h3>
+              <div id="respuesta-vacia" class="respuesta-vacia">
+                <p>
+                  Aún no has enviado ninguna petición. Elige un endpoint, ajusta
+                  los parámetros y pulsa «Enviar petición».
+                </p>
+              </div>
+              <div id="respuesta-contenido" hidden>
+                <div class="respuesta-meta">
+                  <span class="estado-pill estado-ok" id="estado-pill"
+                    >200 OK</span
+                  >
+                  <code class="respuesta-peticion" id="respuesta-peticion"
+                    >GET /datos</code
+                  >
+                  <span class="respuesta-tiempo" id="respuesta-tiempo"
+                    >0 ms</span
+                  >
+                </div>
+                <pre
+                  class="respuesta-pre"
+                  tabindex="0"
+                  role="region"
+                  aria-label="Cuerpo JSON de la respuesta"><code id="respuesta-cuerpo" /></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== Historial ===== -->
+          <section
+            class="panel panel-historial"
+            aria-label="Historial de peticiones"
+          >
+            <div class="panel-cabecera">
+              <h2 class="panel-titulo">Historial</h2>
+              <button type="button" id="btn-limpiar" class="btn-texto" disabled
+                >Limpiar</button
+              >
+            </div>
+            <p id="historial-vacio" class="texto-vacio">
+              Aún no has enviado peticiones. Cada respuesta se registra aquí y
+              puedes repetirla con un clic.
+            </p>
+            <ul id="lista-historial" class="lista-historial" role="list"></ul>
+          </section>
+        </div>
+
+        <!-- ===== Estado del almacén ===== -->
+        <section
+          class="panel panel-almacen reveal"
+          aria-label="Estado del almacén"
+        >
+          <div class="panel-cabecera">
+            <h2 class="panel-titulo">Estado del almacén</h2>
+            <span class="contador" id="contador-almacen">0 registros</span>
+          </div>
+          <div
+            class="tabla-scroll"
+            role="region"
+            aria-label="Registros actuales del almacén"
+            tabindex="0"
+          >
+            <table class="tabla-almacen">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col" class="celda-num">Valor</th>
+                  <th scope="col">Creado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-cuerpo"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style is:global>
+  /* ============================================================
+     Demo: explorador de API. Todo el CSS va espaciado bajo
+     .demo-api porque parte del DOM se genera desde JS y no
+     recibiría las clases de ámbito de Astro.
+     ============================================================ */
+
+  /* ---------- Hero ---------- */
+  .demo-api .demo-hero {
+    padding-block: clamp(3.25rem, 7vw, 5rem) clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  .demo-api .hero-title {
+    font-size: clamp(1.85rem, 4.5vw, 2.75rem);
+    margin-top: 0.6rem;
+    text-wrap: balance;
+  }
+
+  .demo-api .hero-lead {
+    color: var(--muted);
+    font-size: var(--text-lg);
+    max-width: 62ch;
+    margin-top: 1rem;
+  }
+
+  .demo-api .aviso-demo {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin-top: 1.2rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    max-width: 62ch;
+  }
+
+  .demo-api .aviso-demo svg {
+    flex: none;
+    margin-top: 0.2rem;
+    color: var(--accent);
+  }
+
+  .demo-api .hero-enlaces {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.6rem;
+  }
+
+  /* ---------- Rejilla principal ---------- */
+  .demo-api .demo-cuerpo {
+    padding-block: clamp(1rem, 2vw, 1.5rem) clamp(4rem, 8vw, 6rem);
+  }
+
+  .demo-api .demo-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 350px) minmax(0, 1fr);
+    grid-template-areas:
+      "endpoints tester"
+      "historial tester";
+    grid-template-rows: auto 1fr;
+    gap: 1.4rem;
+    align-items: start;
+  }
+
+  .demo-api .panel-endpoints {
+    grid-area: endpoints;
+  }
+  .demo-api .panel-tester {
+    grid-area: tester;
+  }
+  .demo-api .panel-historial {
+    grid-area: historial;
+  }
+
+  @media (max-width: 900px) {
+    .demo-api .demo-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "endpoints" "tester" "historial";
+      grid-template-rows: none;
+    }
+  }
+
+  /* ---------- Paneles ---------- */
+  .demo-api .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.1rem, 2.5vw, 1.5rem);
+    box-shadow: var(--shadow);
+  }
+
+  .demo-api .panel-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+  }
+
+  .demo-api .panel-titulo {
+    font-size: var(--text-lg);
+  }
+
+  .demo-api .etiqueta-mono {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 600;
+  }
+
+  .demo-api .chip-version,
+  .demo-api .contador {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    white-space: nowrap;
+  }
+
+  .demo-api .base-url {
+    font-size: var(--text-xs);
+    color: var(--faint);
+    font-family: var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+
+  .demo-api .desc-endpoint {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    margin-bottom: 1.1rem;
+  }
+
+  .demo-api .texto-vacio {
+    color: var(--faint);
+    font-size: var(--text-sm);
+  }
+
+  /* ---------- Badges de método ---------- */
+  .demo-api .met {
+    flex: none;
+    display: inline-block;
+    min-width: 3.9rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+  }
+
+  .demo-api .met-get {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .demo-api .met-post {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  html[data-theme="dark"] .demo-api .met-post {
+    background: #3a2b12;
+    color: #fbbf24;
+  }
+
+  .demo-api .met-delete {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  html[data-theme="dark"] .demo-api .met-delete {
+    background: #42161f;
+    color: #fda4af;
+  }
+
+  /* ---------- Lista de endpoints ---------- */
+  .demo-api .lista-endpoints {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .demo-api .endpoint-btn {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    min-height: 44px;
+    padding: 0.7rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    transition:
+      background var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .demo-api .endpoint-btn:hover {
+    background: var(--bg-soft);
+  }
+
+  .demo-api .endpoint-btn[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  .demo-api .endpoint-btn .met {
+    margin-top: 0.1rem;
+  }
+
+  .demo-api .endpoint-info {
+    min-width: 0;
+  }
+
+  .demo-api .endpoint-ruta {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .demo-api .endpoint-desc {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+  }
+
+  /* ---------- Formulario ---------- */
+  .demo-api .campo {
+    margin-top: 1.1rem;
+  }
+
+  .demo-api .campo > label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 560;
+    margin-bottom: 0.4rem;
+  }
+
+  .demo-api .campo label code,
+  .demo-api .auth-fieldset legend code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.05rem 0.35rem;
+  }
+
+  .demo-api .campo input[type="text"],
+  .demo-api .campo textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.75rem;
+    color: var(--text);
+    font-size: var(--text-sm);
+    min-height: 42px;
+    font-family: inherit;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .demo-api .campo input[type="text"]:focus,
+  .demo-api .campo textarea:focus,
+  .demo-api .input-id:focus {
+    border-color: var(--accent);
+  }
+
+  .demo-api .campo textarea {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.65;
+    resize: vertical;
+    min-height: 8.5rem;
+    tab-size: 2;
+  }
+
+  .demo-api ::placeholder {
+    color: var(--faint);
+    opacity: 1;
+  }
+
+  /* Línea método + ruta */
+  .demo-api .linea-ruta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.75rem;
+  }
+
+  .demo-api .ruta-caja {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .demo-api .ruta-caja > code {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .demo-api .input-id {
+    width: 6ch;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  /* Selector de autenticación (segmentos) */
+  .demo-api .auth-fieldset {
+    border: 0;
+    padding: 0;
+    margin-inline: 0;
+  }
+
+  .demo-api .auth-fieldset legend {
+    font-size: var(--text-sm);
+    font-weight: 560;
+    padding: 0;
+    margin-bottom: 0.45rem;
+  }
+
+  .demo-api .segmentos {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .demo-api .segmento {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .demo-api .segmento input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .demo-api .segmento span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0.3rem 0.95rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .demo-api .segmento:hover span {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .demo-api .segmento input:checked + span {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 600;
+  }
+
+  .demo-api .segmento input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .demo-api .auth-vista {
+    margin-top: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+    overflow-wrap: anywhere;
+  }
+
+  /* Bloque cURL */
+  .demo-api .curl-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .demo-api .btn-copiar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0.25rem 0.85rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 560;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .demo-api .btn-copiar:hover,
+  .demo-api .btn-copiar.copiado {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .demo-api .curl-pre {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.65;
+    white-space: pre;
+  }
+
+  /* Envío */
+  .demo-api .fila-envio {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+  }
+
+  .demo-api .btn-enviar {
+    min-height: 44px;
+  }
+
+  .demo-api .btn-enviar:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  .demo-api .atajo {
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+
+  .demo-api kbd {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 0.05rem 0.4rem;
+  }
+
+  .demo-api .spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid
+      color-mix(in srgb, var(--accent-contrast) 35%, transparent);
+    border-top-color: var(--accent-contrast);
+    animation: demo-api-girar 0.7s linear infinite;
+  }
+
+  @keyframes demo-api-girar {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ---------- Respuesta ---------- */
+  .demo-api .respuesta {
+    margin-top: 1.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .demo-api .respuesta .etiqueta-mono {
+    margin-bottom: 0.7rem;
+  }
+
+  .demo-api .respuesta-vacia p {
+    color: var(--faint);
+    font-size: var(--text-sm);
+    background: var(--bg-soft);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 1.1rem 1.2rem;
+  }
+
+  .demo-api .respuesta-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+  }
+
+  .demo-api .estado-pill {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .demo-api .estado-ok {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .demo-api .estado-warn {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  html[data-theme="dark"] .demo-api .estado-warn {
+    background: #3a2b12;
+    color: #fbbf24;
+  }
+
+  .demo-api .estado-err {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  html[data-theme="dark"] .demo-api .estado-err {
+    background: #42161f;
+    color: #fda4af;
+  }
+
+  .demo-api .respuesta-peticion {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .demo-api .respuesta-tiempo {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  .demo-api .respuesta-pre {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: auto;
+    max-height: 480px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    tab-size: 2;
+  }
+
+  /* Resaltado JSON (spans generados desde JS) */
+  .demo-api .tk-clave {
+    color: var(--accent);
+  }
+
+  .demo-api .tk-cadena {
+    color: #9a3412;
+  }
+
+  html[data-theme="dark"] .demo-api .tk-cadena {
+    color: #fdba74;
+  }
+
+  .demo-api .tk-numero {
+    color: #1d4ed8;
+  }
+
+  html[data-theme="dark"] .demo-api .tk-numero {
+    color: #93c5fd;
+  }
+
+  .demo-api .tk-bool,
+  .demo-api .tk-nulo {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* ---------- Historial ---------- */
+  .demo-api .btn-texto {
+    background: none;
+    border: none;
+    min-height: 40px;
+    padding: 0 0.6rem;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 560;
+    cursor: pointer;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .demo-api .btn-texto:hover:not(:disabled) {
+    color: var(--accent);
+  }
+
+  .demo-api .btn-texto:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .demo-api .lista-historial {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  .demo-api .hist-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color var(--dur) var(--ease),
+      background var(--dur) var(--ease);
+  }
+
+  .demo-api .hist-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-soft);
+  }
+
+  /* Mientras hay una petición en vuelo, el historial queda atenuado. */
+  .demo-api .hist-btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .demo-api .hist-btn[aria-disabled="true"]:hover {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  .demo-api .hist-ruta {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .demo-api .estado-mini {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 0.08rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .demo-api .hist-ms {
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  /* ---------- Tabla del almacén ---------- */
+  .demo-api .panel-almacen {
+    margin-top: 1.4rem;
+  }
+
+  .demo-api .tabla-scroll {
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  .demo-api .tabla-almacen {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .demo-api .tabla-almacen th {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--faint);
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  .demo-api .tabla-almacen td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .demo-api .tabla-almacen tr:last-child td {
+    border-bottom: none;
+  }
+
+  .demo-api .celda-mono {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .demo-api .celda-num {
+    text-align: right;
+  }
+
+  .demo-api .chip-tipo {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.08rem 0.55rem;
+  }
+
+  .demo-api .celda-vacia {
+    color: var(--faint);
+    text-align: center;
+    padding-block: 1.4rem;
+  }
+
+  .demo-api .celda-vacia code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.05rem 0.35rem;
+  }
+
+  /* ---------- Utilidades ---------- */
+  .demo-api .visualmente-oculto,
+  .visualmente-oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  // ============================================================
+  // Servidor simulado: reproduce el contrato de la API real
+  // (interna) por completo en el navegador. Nada sale de la
+  // pestaña; el almacén vive en memoria.
+  // ============================================================
+
+  type Metodo = "GET" | "POST" | "DELETE";
+  type EndpointId = "listar" | "crear" | "detalle" | "eliminar" | "integracion";
+  type ModoAuth = "valido" | "invalido" | "sin";
+
+  interface DefEndpoint {
+    metodo: Metodo;
+    ruta: string;
+    usaId: boolean;
+    usaQuery: boolean;
+    usaBody: boolean;
+    bodyEjemplo: string;
+  }
+
+  interface Registro {
+    id: number;
+    nombre: string;
+    tipo: string;
+    valor: number;
+    creado: string;
+  }
+
+  interface ConfigPeticion {
+    endpoint: EndpointId;
+    id: string;
+    tipo: string;
+    body: string;
+    auth: ModoAuth;
+  }
+
+  interface RespuestaSim {
+    status: number;
+    cuerpo: unknown;
+    anuncio: string;
+    mutacion: boolean;
+  }
+
+  interface EntradaHistorial {
+    config: ConfigPeticion;
+    metodo: Metodo;
+    ruta: string;
+    status: number;
+    ms: number;
+  }
+
+  const URL_BASE = "https://api.interna.example";
+  const TOKEN_VALIDO = "tok_demo_2026";
+  const TOKEN_INVALIDO = "tok_caducado_9f3";
+  const MAX_HISTORIAL = 15;
+
+  const TEXTO_ESTADO: Record<number, string> = {
+    200: "OK",
+    201: "Created",
+    400: "Bad Request",
+    401: "Unauthorized",
+    404: "Not Found",
+  };
+
+  const ENDPOINTS: Record<EndpointId, DefEndpoint> = {
+    listar: {
+      metodo: "GET",
+      ruta: "/datos",
+      usaId: false,
+      usaQuery: true,
+      usaBody: false,
+      bodyEjemplo: "",
+    },
+    crear: {
+      metodo: "POST",
+      ruta: "/datos",
+      usaId: false,
+      usaQuery: false,
+      usaBody: true,
+      bodyEjemplo: `{
+  "nombre": "Cierre de caja — sede norte",
+  "tipo": "ventas",
+  "valor": 15300
+}`,
+    },
+    detalle: {
+      metodo: "GET",
+      ruta: "/datos/:id",
+      usaId: true,
+      usaQuery: false,
+      usaBody: false,
+      bodyEjemplo: "",
+    },
+    eliminar: {
+      metodo: "DELETE",
+      ruta: "/datos/:id",
+      usaId: true,
+      usaQuery: false,
+      usaBody: false,
+      bodyEjemplo: "",
+    },
+    integracion: {
+      metodo: "POST",
+      ruta: "/integracion",
+      usaId: false,
+      usaQuery: false,
+      usaBody: true,
+      bodyEjemplo: `{
+  "destino": "ERP corporativo",
+  "tipo": "inventario"
+}`,
+    },
+  };
+
+  // ---------- Almacén en memoria (datos de ejemplo realistas) ----------
+  const almacen: Registro[] = [
+    {
+      id: 1,
+      nombre: "Sincronización de inventario — bodega central",
+      tipo: "inventario",
+      valor: 1248,
+      creado: "2026-06-18T08:15:00Z",
+    },
+    {
+      id: 2,
+      nombre: "Ventas consolidadas — canal mayorista",
+      tipo: "ventas",
+      valor: 58230,
+      creado: "2026-06-20T17:42:00Z",
+    },
+    {
+      id: 3,
+      nombre: "Clientes activos sincronizados desde el CRM",
+      tipo: "clientes",
+      valor: 342,
+      creado: "2026-06-23T09:05:00Z",
+    },
+    {
+      id: 4,
+      nombre: "Stock de seguridad — línea eléctrica",
+      tipo: "inventario",
+      valor: 320,
+      creado: "2026-06-25T11:30:00Z",
+    },
+    {
+      id: 5,
+      nombre: "Pedidos pendientes de despacho — zona norte",
+      tipo: "pedidos",
+      valor: 112,
+      creado: "2026-06-28T14:20:00Z",
+    },
+    {
+      id: 6,
+      nombre: "Recaudos aplicados — semana 27",
+      tipo: "cartera",
+      valor: 9640,
+      creado: "2026-07-01T16:55:00Z",
+    },
+    {
+      id: 7,
+      nombre: "Facturas emitidas — corte diario",
+      tipo: "ventas",
+      valor: 86,
+      creado: "2026-07-06T19:10:00Z",
+    },
+  ];
+  let siguienteId = 8;
+
+  // ---------- Estado de la interfaz ----------
+  let endpointActual: EndpointId = "listar";
+  let enEnvio = false;
+  const borradores: Partial<Record<EndpointId, string>> = {};
+  const historial: EntradaHistorial[] = [];
+
+  // ---------- Referencias al DOM ----------
+  function el<T extends HTMLElement = HTMLElement>(id: string): T {
+    const nodo = document.getElementById(id);
+    if (!nodo) throw new Error(`No se encontró el elemento #${id}`);
+    return nodo as T;
+  }
+
+  const form = el<HTMLFormElement>("form-peticion");
+  const inputId = el<HTMLInputElement>("input-id");
+  const inputTipo = el<HTMLInputElement>("input-tipo");
+  const inputBody = el<HTMLTextAreaElement>("input-body");
+  const listaTipos = el("lista-tipos");
+  const metodoActual = el("metodo-actual");
+  const rutaTexto = el("ruta-texto");
+  const grupoId = el("grupo-id");
+  const grupoQuery = el("grupo-query");
+  const grupoBody = el("grupo-body");
+  const descEndpoint = el("desc-endpoint");
+  const authVista = el("auth-vista");
+  const curlCodigo = el("curl-codigo");
+  const btnCopiar = el<HTMLButtonElement>("btn-copiar-curl");
+  const btnEnviar = el<HTMLButtonElement>("btn-enviar");
+  const btnEnviarTexto = el("btn-enviar-texto");
+  const spinner = el("spinner");
+  const panelRespuesta = el("panel-respuesta");
+  const respuestaVacia = el("respuesta-vacia");
+  const respuestaContenido = el("respuesta-contenido");
+  const estadoPill = el("estado-pill");
+  const respuestaPeticion = el("respuesta-peticion");
+  const respuestaTiempo = el("respuesta-tiempo");
+  const respuestaCuerpo = el("respuesta-cuerpo");
+  const anuncio = el("anuncio");
+  const listaHistorial = el("lista-historial");
+  const historialVacio = el("historial-vacio");
+  const btnLimpiar = el<HTMLButtonElement>("btn-limpiar");
+  const contador = el("contador-almacen");
+  const tablaCuerpo = el("tabla-cuerpo");
+
+  const botonesEndpoint = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("button[data-endpoint]"),
+  );
+  const radiosAuth = Array.from(
+    document.querySelectorAll<HTMLInputElement>('input[name="modo-auth"]'),
+  );
+
+  // ---------- Utilidades ----------
+  function escaparHtml(texto: string): string {
+    return texto
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  const esperar = (ms: number) =>
+    new Promise<void>((res) => setTimeout(res, ms));
+
+  function latenciaPara(id: EndpointId): number {
+    // /integracion "tarda" ~1,5 s; el resto entre 80 y 350 ms.
+    if (id === "integracion") return 1480 + Math.floor(Math.random() * 240);
+    return 80 + Math.floor(Math.random() * 271);
+  }
+
+  function clasePorEstado(status: number): string {
+    if (status < 400) return "estado-ok";
+    if (status === 400) return "estado-warn";
+    return "estado-err";
+  }
+
+  /** Pretty-print con resaltado: claves en acento, strings y números con su tono. */
+  function resaltarJson(valor: unknown, nivel = 0): string {
+    const sangria = "  ".repeat(nivel);
+    const sangriaHija = "  ".repeat(nivel + 1);
+
+    if (valor === null) return '<span class="tk-nulo">null</span>';
+    if (typeof valor === "string") {
+      return `<span class="tk-cadena">${escaparHtml(JSON.stringify(valor))}</span>`;
+    }
+    if (typeof valor === "number") {
+      return `<span class="tk-numero">${String(valor)}</span>`;
+    }
+    if (typeof valor === "boolean") {
+      return `<span class="tk-bool">${String(valor)}</span>`;
+    }
+    if (Array.isArray(valor)) {
+      if (valor.length === 0) return "[]";
+      const items = valor
+        .map((v) => sangriaHija + resaltarJson(v, nivel + 1))
+        .join(",\n");
+      return `[\n${items}\n${sangria}]`;
+    }
+    if (typeof valor === "object") {
+      const entradas = Object.entries(valor as Record<string, unknown>);
+      if (entradas.length === 0) return "{}";
+      const items = entradas
+        .map(
+          ([clave, v]) =>
+            `${sangriaHija}<span class="tk-clave">${escaparHtml(JSON.stringify(clave))}</span>: ${resaltarJson(v, nivel + 1)}`,
+        )
+        .join(",\n");
+      return `{\n${items}\n${sangria}}`;
+    }
+    return escaparHtml(String(valor));
+  }
+
+  // ---------- Lógica del servidor simulado ----------
+  function errorSim(
+    status: number,
+    codigo: string,
+    mensaje: string,
+    detalle: string,
+  ): RespuestaSim {
+    return {
+      status,
+      cuerpo: { error: { codigo, mensaje, detalle } },
+      anuncio: `${status} ${TEXTO_ESTADO[status]} — ${detalle}`,
+      mutacion: false,
+    };
+  }
+
+  function procesar(cfg: ConfigPeticion): RespuestaSim {
+    // 1. Autenticación: la misma regla para todos los endpoints.
+    if (cfg.auth === "sin") {
+      return errorSim(
+        401,
+        "NO_AUTORIZADO",
+        "La petición no está autenticada.",
+        "Falta la cabecera Authorization.",
+      );
+    }
+    if (cfg.auth === "invalido") {
+      return errorSim(
+        401,
+        "NO_AUTORIZADO",
+        "La petición no está autenticada.",
+        "El token proporcionado no es válido o ha expirado.",
+      );
+    }
+
+    const def = ENDPOINTS[cfg.endpoint];
+
+    // 2. Parámetro :id de la ruta.
+    let idNum = 0;
+    if (def.usaId) {
+      const bruto = cfg.id.trim();
+      if (!/^\d+$/.test(bruto)) {
+        return errorSim(
+          400,
+          "VALIDACION",
+          "La ruta no es válida.",
+          "El parámetro :id debe ser un número entero positivo.",
+        );
+      }
+      idNum = Number(bruto);
+    }
+
+    // 3. Body JSON.
+    let body: Record<string, unknown> = {};
+    if (def.usaBody) {
+      let interpretado: unknown;
+      try {
+        interpretado = JSON.parse(cfg.body);
+      } catch {
+        return errorSim(
+          400,
+          "JSON_INVALIDO",
+          "El cuerpo de la petición no es JSON válido.",
+          "Revisa comillas, comas y llaves antes de reenviar.",
+        );
+      }
+      if (
+        typeof interpretado !== "object" ||
+        interpretado === null ||
+        Array.isArray(interpretado)
+      ) {
+        return errorSim(
+          400,
+          "VALIDACION",
+          "El cuerpo de la petición no es válido.",
+          "El cuerpo debe ser un objeto JSON.",
+        );
+      }
+      body = interpretado as Record<string, unknown>;
+    }
+
+    // 4. Lógica por endpoint.
+    switch (cfg.endpoint) {
+      case "listar": {
+        const filtro = cfg.tipo.trim().toLowerCase();
+        const datos = filtro
+          ? almacen.filter((r) => r.tipo.toLowerCase() === filtro)
+          : [...almacen];
+        const n = datos.length;
+        return {
+          status: 200,
+          cuerpo: { total: n, datos },
+          anuncio: `200 OK — ${n} ${n === 1 ? "registro devuelto" : "registros devueltos"}`,
+          mutacion: false,
+        };
+      }
+
+      case "crear": {
+        const nombre = body["nombre"];
+        if (nombre === undefined) {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "Falta el campo obligatorio «nombre».",
+          );
+        }
+        if (typeof nombre !== "string" || nombre.trim() === "") {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "El campo «nombre» debe ser un texto no vacío.",
+          );
+        }
+        const tipo = body["tipo"];
+        if (tipo === undefined) {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "Falta el campo obligatorio «tipo».",
+          );
+        }
+        if (typeof tipo !== "string" || tipo.trim() === "") {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "El campo «tipo» debe ser un texto no vacío.",
+          );
+        }
+        const valor = body["valor"];
+        if (valor === undefined) {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "Falta el campo obligatorio «valor».",
+          );
+        }
+        if (typeof valor !== "number" || !Number.isFinite(valor)) {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "El campo «valor» debe ser un número.",
+          );
+        }
+        const registro: Registro = {
+          id: siguienteId,
+          nombre: nombre.trim(),
+          tipo: tipo.trim().toLowerCase(),
+          valor,
+          creado: new Date().toISOString(),
+        };
+        siguienteId += 1;
+        almacen.push(registro);
+        return {
+          status: 201,
+          cuerpo: registro,
+          anuncio: `201 Created — registro #${registro.id} creado`,
+          mutacion: true,
+        };
+      }
+
+      case "detalle": {
+        const registro = almacen.find((r) => r.id === idNum);
+        if (!registro) {
+          return errorSim(
+            404,
+            "NO_ENCONTRADO",
+            "El registro solicitado no existe.",
+            `No hay ningún registro con id ${idNum}.`,
+          );
+        }
+        return {
+          status: 200,
+          cuerpo: registro,
+          anuncio: `200 OK — registro #${idNum} devuelto`,
+          mutacion: false,
+        };
+      }
+
+      case "eliminar": {
+        const registro = almacen.find((r) => r.id === idNum);
+        if (!registro) {
+          return errorSim(
+            404,
+            "NO_ENCONTRADO",
+            "El registro solicitado no existe.",
+            `No hay ningún registro con id ${idNum}.`,
+          );
+        }
+        almacen.splice(almacen.indexOf(registro), 1);
+        return {
+          status: 200,
+          cuerpo: { mensaje: `Registro #${idNum} eliminado.`, registro },
+          anuncio: `200 OK — registro #${idNum} eliminado`,
+          mutacion: true,
+        };
+      }
+
+      case "integracion": {
+        const destino = body["destino"];
+        if (destino === undefined) {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "Falta el campo obligatorio «destino».",
+          );
+        }
+        if (typeof destino !== "string" || destino.trim() === "") {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "El campo «destino» debe ser un texto no vacío.",
+          );
+        }
+        const tipoFiltro = body["tipo"];
+        if (tipoFiltro !== undefined && typeof tipoFiltro !== "string") {
+          return errorSim(
+            400,
+            "VALIDACION",
+            "El cuerpo de la petición no es válido.",
+            "El campo «tipo» debe ser un texto.",
+          );
+        }
+        const seleccion =
+          typeof tipoFiltro === "string" && tipoFiltro.trim() !== ""
+            ? almacen.filter(
+                (r) => r.tipo.toLowerCase() === tipoFiltro.trim().toLowerCase(),
+              )
+            : almacen;
+        const enviados = seleccion.length;
+        const rechazados =
+          enviados === 0
+            ? 0
+            : Math.min(enviados, Math.floor(Math.random() * 2));
+        const aceptados = enviados - rechazados;
+        return {
+          status: 200,
+          cuerpo: { destino: destino.trim(), enviados, aceptados },
+          anuncio: `200 OK — sincronización completada: ${aceptados} de ${enviados} registros aceptados`,
+          mutacion: false,
+        };
+      }
+    }
+  }
+
+  // ---------- Lectura y aplicación de la configuración ----------
+  function modoAuthActual(): ModoAuth {
+    const marcado = radiosAuth.find((r) => r.checked);
+    return (marcado?.value as ModoAuth | undefined) ?? "valido";
+  }
+
+  function fijarModoAuth(modo: ModoAuth): void {
+    radiosAuth.forEach((r) => {
+      r.checked = r.value === modo;
+    });
+    actualizarVistaAuth();
+  }
+
+  function configActual(): ConfigPeticion {
+    return {
+      endpoint: endpointActual,
+      id: inputId.value,
+      tipo: inputTipo.value,
+      body: inputBody.value,
+      auth: modoAuthActual(),
+    };
+  }
+
+  function rutaMostrada(cfg: ConfigPeticion): string {
+    const def = ENDPOINTS[cfg.endpoint];
+    let ruta = def.ruta;
+    if (def.usaId) {
+      const bruto = cfg.id.trim();
+      // Función como reemplazo para que $&, $', $` o $$ en el input
+      // no se interpreten como patrones especiales de String.replace.
+      ruta = ruta.replace(":id", () => (bruto === "" ? ":id" : bruto));
+    }
+    if (def.usaQuery) {
+      const filtro = cfg.tipo.trim();
+      if (filtro !== "") ruta += `?tipo=${encodeURIComponent(filtro)}`;
+    }
+    return ruta;
+  }
+
+  function seleccionarEndpoint(id: EndpointId): void {
+    endpointActual = id;
+    const def = ENDPOINTS[id];
+
+    botonesEndpoint.forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.endpoint === id));
+    });
+
+    metodoActual.textContent = def.metodo;
+    metodoActual.className = `met met-${def.metodo.toLowerCase()}`;
+    rutaTexto.textContent = def.usaId ? def.ruta.replace(":id", "") : def.ruta;
+
+    grupoId.hidden = !def.usaId;
+    grupoQuery.hidden = !def.usaQuery;
+    grupoBody.hidden = !def.usaBody;
+    if (def.usaBody) {
+      inputBody.value = borradores[id] ?? def.bodyEjemplo;
+    }
+
+    const boton = botonesEndpoint.find((b) => b.dataset.endpoint === id);
+    descEndpoint.textContent =
+      boton?.querySelector(".endpoint-desc")?.textContent?.trim() ?? "";
+
+    actualizarCurl();
+  }
+
+  function aplicarConfig(cfg: ConfigPeticion): void {
+    seleccionarEndpoint(cfg.endpoint);
+    inputId.value = cfg.id;
+    inputTipo.value = cfg.tipo;
+    if (ENDPOINTS[cfg.endpoint].usaBody) {
+      inputBody.value = cfg.body;
+      borradores[cfg.endpoint] = cfg.body;
+    }
+    fijarModoAuth(cfg.auth);
+    actualizarCurl();
+  }
+
+  // ---------- Render ----------
+  function renderRespuesta(
+    res: RespuestaSim,
+    cfg: ConfigPeticion,
+    ms: number,
+  ): void {
+    respuestaVacia.hidden = true;
+    respuestaContenido.hidden = false;
+    estadoPill.textContent =
+      `${res.status} ${TEXTO_ESTADO[res.status] ?? ""}`.trim();
+    estadoPill.className = `estado-pill ${clasePorEstado(res.status)}`;
+    respuestaPeticion.textContent = `${ENDPOINTS[cfg.endpoint].metodo} ${rutaMostrada(cfg)}`;
+    respuestaTiempo.textContent = `${ms} ms`;
+    respuestaCuerpo.innerHTML = resaltarJson(res.cuerpo);
+    anuncio.textContent = `${res.anuncio} (${ms} ms)`;
+  }
+
+  function renderAlmacen(): void {
+    const n = almacen.length;
+    contador.textContent = `${n} ${n === 1 ? "registro" : "registros"}`;
+
+    if (n === 0) {
+      tablaCuerpo.innerHTML =
+        '<tr><td colspan="5" class="celda-vacia">El almacén está vacío. Crea un registro con <code>POST /datos</code>.</td></tr>';
+    } else {
+      tablaCuerpo.innerHTML = almacen
+        .map(
+          (r) => `<tr>
+            <td class="celda-mono">${r.id}</td>
+            <td>${escaparHtml(r.nombre)}</td>
+            <td><span class="chip-tipo">${escaparHtml(r.tipo)}</span></td>
+            <td class="celda-mono celda-num">${r.valor.toLocaleString("es-CO")}</td>
+            <td class="celda-mono">${escaparHtml(r.creado.slice(0, 10))}</td>
+          </tr>`,
+        )
+        .join("");
+    }
+
+    // Sugerencias del filtro ?tipo= a partir de los tipos existentes.
+    const tipos = Array.from(new Set(almacen.map((r) => r.tipo))).sort();
+    listaTipos.innerHTML = tipos
+      .map((t) => `<option value="${escaparHtml(t)}"></option>`)
+      .join("");
+  }
+
+  function renderHistorial(): void {
+    btnLimpiar.disabled = historial.length === 0;
+    historialVacio.hidden = historial.length > 0;
+
+    const teniaFoco = listaHistorial.contains(document.activeElement);
+    listaHistorial.innerHTML = historial
+      .map((h, i) => {
+        const etiqueta = escaparHtml(
+          `Repetir ${h.metodo} ${h.ruta} (respondió ${h.status} en ${h.ms} ms)`,
+        );
+        return `<li>
+          <button type="button" class="hist-btn" data-indice="${i}" aria-label="${etiqueta}">
+            <span class="met met-${h.metodo.toLowerCase()}">${h.metodo}</span>
+            <span class="hist-ruta">${escaparHtml(h.ruta)}</span>
+            <span class="estado-mini ${clasePorEstado(h.status)}">${h.status}</span>
+            <span class="hist-ms">${h.ms} ms</span>
+          </button>
+        </li>`;
+      })
+      .join("");
+    if (teniaFoco) {
+      listaHistorial.querySelector<HTMLButtonElement>("button")?.focus();
+    }
+  }
+
+  function actualizarVistaAuth(): void {
+    const modo = modoAuthActual();
+    authVista.textContent =
+      modo === "valido"
+        ? `Authorization: Bearer ${TOKEN_VALIDO}`
+        : modo === "invalido"
+          ? `Authorization: Bearer ${TOKEN_INVALIDO}`
+          : "(sin cabecera Authorization)";
+  }
+
+  function compactarBody(bruto: string): string {
+    try {
+      return JSON.stringify(JSON.parse(bruto));
+    } catch {
+      return bruto.replace(/\s*\n\s*/g, " ").trim();
+    }
+  }
+
+  function actualizarCurl(): void {
+    const cfg = configActual();
+    const def = ENDPOINTS[cfg.endpoint];
+    const lineas = [`curl -X ${def.metodo} '${URL_BASE}${rutaMostrada(cfg)}'`];
+    if (cfg.auth === "valido") {
+      lineas.push(`-H 'Authorization: Bearer ${TOKEN_VALIDO}'`);
+    } else if (cfg.auth === "invalido") {
+      lineas.push(`-H 'Authorization: Bearer ${TOKEN_INVALIDO}'`);
+    }
+    if (def.usaBody) {
+      lineas.push("-H 'Content-Type: application/json'");
+      lineas.push(`-d '${compactarBody(cfg.body).replace(/'/g, "'\\''")}'`);
+    }
+    curlCodigo.textContent = lineas.join(" \\\n  ");
+  }
+
+  // ---------- Envío ----------
+  /** Marca los botones del historial como deshabilitados mientras hay una petición en vuelo. */
+  function fijarHistorialEnVuelo(enVuelo: boolean): void {
+    listaHistorial
+      .querySelectorAll<HTMLButtonElement>("button[data-indice]")
+      .forEach((b) => {
+        if (enVuelo) {
+          b.setAttribute("aria-disabled", "true");
+        } else {
+          b.removeAttribute("aria-disabled");
+        }
+      });
+  }
+
+  async function ejecutar(): Promise<void> {
+    if (enEnvio) return;
+    enEnvio = true;
+
+    const cfg = configActual();
+    const ms = latenciaPara(cfg.endpoint);
+
+    btnEnviar.disabled = true;
+    btnEnviarTexto.textContent = "Enviando…";
+    spinner.hidden = false;
+    panelRespuesta.setAttribute("aria-busy", "true");
+    fijarHistorialEnVuelo(true);
+
+    try {
+      await esperar(ms);
+      const res = procesar(cfg);
+      renderRespuesta(res, cfg, ms);
+      historial.unshift({
+        config: { ...cfg },
+        metodo: ENDPOINTS[cfg.endpoint].metodo,
+        ruta: rutaMostrada(cfg),
+        status: res.status,
+        ms,
+      });
+      if (historial.length > MAX_HISTORIAL) historial.length = MAX_HISTORIAL;
+      renderHistorial();
+      if (res.mutacion) renderAlmacen();
+    } finally {
+      enEnvio = false;
+      btnEnviar.disabled = false;
+      btnEnviarTexto.textContent = "Enviar petición";
+      spinner.hidden = true;
+      panelRespuesta.setAttribute("aria-busy", "false");
+      fijarHistorialEnVuelo(false);
+    }
+  }
+
+  // ---------- Eventos ----------
+  botonesEndpoint.forEach((b) => {
+    b.addEventListener("click", () => {
+      const id = b.dataset.endpoint as EndpointId | undefined;
+      if (id && id in ENDPOINTS) seleccionarEndpoint(id);
+    });
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    void ejecutar();
+  });
+
+  // Ctrl+Enter (o Cmd+Enter) envía desde cualquier campo del formulario.
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      void ejecutar();
+    }
+  });
+
+  [inputId, inputTipo].forEach((campo) => {
+    campo.addEventListener("input", actualizarCurl);
+  });
+
+  inputBody.addEventListener("input", () => {
+    borradores[endpointActual] = inputBody.value;
+    actualizarCurl();
+  });
+
+  radiosAuth.forEach((r) => {
+    r.addEventListener("change", () => {
+      actualizarVistaAuth();
+      actualizarCurl();
+    });
+  });
+
+  listaHistorial.addEventListener("click", (e) => {
+    const boton = (e.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-indice]",
+    );
+    if (!boton) return;
+    // Guarda temprana: con una petición en vuelo no se toca el formulario
+    // y se avisa por la región aria-live en vez de fallar en silencio.
+    if (enEnvio) {
+      anuncio.textContent = "Espera a que termine la petición en curso.";
+      return;
+    }
+    const entrada = historial[Number(boton.dataset.indice)];
+    if (!entrada) return;
+    aplicarConfig(entrada.config);
+    void ejecutar();
+  });
+
+  btnLimpiar.addEventListener("click", () => {
+    historial.length = 0;
+    renderHistorial();
+    anuncio.textContent = "Historial de peticiones vaciado.";
+  });
+
+  let temporizadorCopiar: number | undefined;
+  btnCopiar.addEventListener("click", async () => {
+    const texto = curlCodigo.textContent ?? "";
+    try {
+      await navigator.clipboard.writeText(texto);
+      btnCopiar.textContent = "Copiado ✓";
+      btnCopiar.classList.add("copiado");
+      anuncio.textContent = "Comando cURL copiado al portapapeles.";
+    } catch {
+      btnCopiar.textContent = "No disponible";
+    }
+    window.clearTimeout(temporizadorCopiar);
+    temporizadorCopiar = window.setTimeout(() => {
+      btnCopiar.textContent = "Copiar";
+      btnCopiar.classList.remove("copiado");
+    }, 1600);
+  });
+
+  // ---------- Estado inicial ----------
+  renderAlmacen();
+  renderHistorial();
+  seleccionarEndpoint("listar");
+  actualizarVistaAuth();
+</script>

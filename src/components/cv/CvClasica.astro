@@ -1,0 +1,317 @@
+---
+// ============================================================
+//  Plantilla de CV "Clásica": una columna sobria y tradicional,
+//  pensada para sistemas ATS. Encabezado centrado, filete
+//  horizontal, títulos en versalitas y casi sin color.
+// ============================================================
+import {
+  perfil,
+  cv,
+  experiencia,
+  educacion,
+  certificaciones,
+  idiomas,
+  sobreMi,
+} from "../../data/site";
+
+const telHref = `tel:${perfil.telefono.replace(/[^+\d]/g, "")}`;
+const sinProtocolo = (url: string) =>
+  url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+// Línea de contacto centrada; los datos vacíos (p. ej. teléfono o
+// LinkedIn) se filtran ANTES de unir para no dejar separadores huérfanos.
+const contactos: { texto: string; href: string }[] = [
+  { texto: perfil.email, href: `mailto:${perfil.email}` },
+  { texto: perfil.telefono, href: telHref },
+  { texto: perfil.ubicacion, href: "" },
+  {
+    texto: perfil.social.github ? sinProtocolo(perfil.social.github) : "",
+    href: perfil.social.github,
+  },
+  {
+    texto: perfil.social.linkedin ? sinProtocolo(perfil.social.linkedin) : "",
+    href: perfil.social.linkedin,
+  },
+].filter((c) => Boolean(c.texto));
+---
+
+<article class="cv-clasica">
+  <header class="cabecera">
+    <h1>{perfil.nombre}</h1>
+    <p class="rol">{perfil.rol}</p>
+    <p class="contacto">
+      {
+        contactos.map((c, i) => (
+          <>
+            {i > 0 && (
+              <span class="separador" aria-hidden="true">
+                ·
+              </span>
+            )}
+            {c.href ? (
+              <a href={c.href} rel="noopener">
+                {c.texto}
+              </a>
+            ) : (
+              <span>{c.texto}</span>
+            )}
+          </>
+        ))
+      }
+    </p>
+  </header>
+
+  <hr class="filete" />
+
+  <section class="seccion" aria-labelledby="c-perfil">
+    <h2 id="c-perfil">Perfil profesional</h2>
+    <p class="texto">{cv.perfilProfesional}</p>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-experiencia">
+    <h2 id="c-experiencia">Experiencia profesional</h2>
+    {
+      experiencia.map((exp) => (
+        <div class="entrada">
+          <p class="linea-puesto">
+            <strong>{exp.puesto}</strong> — {exp.empresa}{" "}
+            <span class="periodo">({exp.periodo})</span>
+          </p>
+          <ul class="vinetas">
+            {exp.puntos.map((punto) => (
+              <li>{punto}</li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </section>
+
+  <section class="seccion" aria-labelledby="c-formacion">
+    <h2 id="c-formacion">Formación académica</h2>
+    {
+      educacion.map((edu) => (
+        <div class="entrada">
+          <p class="linea-puesto">
+            <strong>{edu.titulo}</strong> — {edu.institucion}{" "}
+            <span class="periodo">({edu.periodo})</span>
+          </p>
+        </div>
+      ))
+    }
+  </section>
+
+  <section class="seccion" aria-labelledby="c-certificaciones">
+    <h2 id="c-certificaciones">Certificaciones</h2>
+    <ul class="vinetas certs">
+      {
+        certificaciones.map((cert) => (
+          <li>
+            <strong>{cert.nombre}</strong> — {cert.entidad}{" "}
+            <span class="periodo">({cert.año})</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-competencias">
+    <h2 id="c-competencias">Competencias técnicas</h2>
+    <p class="texto">{sobreMi.stack.join(", ")}.</p>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-idiomas">
+    <h2 id="c-idiomas">Idiomas</h2>
+    <p class="texto">
+      {
+        idiomas.map((idi, i) => (
+          <>
+            {i > 0 && (
+              <span class="separador" aria-hidden="true">
+                ·
+              </span>
+            )}
+            {idi.idioma}: {idi.nivel}
+          </>
+        ))
+      }
+    </p>
+  </section>
+</article>
+
+<style>
+  /* Documento tradicional: tinta casi negra y grises, sin acento */
+  .cv-clasica {
+    --cv-tinta: #1c1917;
+    --cv-gris: #57534e;
+    --cv-gris-suave: #78716c;
+    --cv-linea: #d6d1c8;
+
+    color: var(--cv-tinta);
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding: clamp(1.75rem, 5vw, 3rem) clamp(1.25rem, 5vw, 3rem);
+  }
+
+  /* ---------- Encabezado centrado ---------- */
+  .cabecera {
+    text-align: center;
+  }
+
+  .cabecera h1 {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-weight: 400;
+    font-size: clamp(1.35rem, 4vw, 1.8rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .rol {
+    margin-top: 0.4rem;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--cv-gris);
+  }
+
+  .contacto {
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    color: var(--cv-gris);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 0.5rem;
+    row-gap: 0.15rem;
+  }
+
+  .contacto a {
+    color: var(--cv-tinta);
+    text-decoration: underline;
+    text-decoration-color: var(--cv-linea);
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  .contacto a:hover {
+    text-decoration-color: var(--cv-gris);
+  }
+
+  .separador {
+    color: var(--cv-gris-suave);
+  }
+
+  /* ---------- Filete ---------- */
+  .filete {
+    border: none;
+    border-top: 1px solid var(--cv-tinta);
+    margin: 1.4rem 0 0;
+  }
+
+  /* ---------- Secciones con títulos en versalitas ---------- */
+  .seccion {
+    margin-top: 1.6rem;
+  }
+
+  .seccion h2 {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cv-tinta);
+    border-bottom: 1px solid var(--cv-linea);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .texto {
+    color: var(--cv-gris);
+  }
+
+  .entrada {
+    margin-bottom: 1rem;
+  }
+
+  .entrada:last-child {
+    margin-bottom: 0;
+  }
+
+  .linea-puesto {
+    line-height: 1.45;
+  }
+
+  .linea-puesto strong {
+    font-weight: 700;
+  }
+
+  .periodo {
+    color: var(--cv-gris-suave);
+    font-size: 0.88em;
+  }
+
+  .vinetas {
+    margin-top: 0.4rem;
+    padding-left: 1.3rem;
+    color: var(--cv-gris);
+  }
+
+  .vinetas li {
+    margin-bottom: 0.25rem;
+  }
+
+  .vinetas li::marker {
+    color: var(--cv-gris-suave);
+  }
+
+  .certs {
+    margin-top: 0;
+  }
+
+  .certs li strong {
+    color: var(--cv-tinta);
+  }
+
+  /* ---------- Impresión ---------- */
+  @media print {
+    .cv-clasica {
+      font-size: 11.5pt;
+      line-height: 1.5;
+      padding: 0;
+    }
+    .cabecera h1 {
+      font-size: 17pt;
+    }
+    .rol {
+      font-size: 11.5pt;
+    }
+    .contacto {
+      font-size: 10pt;
+    }
+    .contacto a {
+      text-decoration: none;
+      color: var(--cv-tinta);
+    }
+    .filete {
+      margin-top: 5mm;
+    }
+    .seccion {
+      margin-top: 5.5mm;
+    }
+    .seccion h2 {
+      font-size: 10pt;
+    }
+    .cabecera,
+    .entrada,
+    .certs li {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    /* Que un título nunca quede huérfano al pie de página */
+    .seccion h2 {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+  }
+</style>

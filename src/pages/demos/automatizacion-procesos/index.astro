@@ -1,0 +1,1968 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Header from "../../../components/Header.astro";
+import Footer from "../../../components/Footer.astro";
+import { withBase } from "../../../lib/utils";
+
+const titulo = "Flujo de automatización — simulación";
+const descripcion =
+  "Demo interactiva que simula, directamente en el navegador, un flujo de aprobación con el patrón de Power Automate y Power Apps: formulario, nodos en secuencia y lista de seguimiento.";
+---
+
+<BaseLayout titulo={`${titulo} — Demo interactiva`} descripcion={descripcion}>
+  <Header />
+  <main id="contenido" class="demo" tabindex="-1">
+    <p class="visualmente-oculto" aria-live="polite" data-anuncios></p>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="container reveal">
+        <p class="eyebrow">Demo interactiva</p>
+        <h1 class="hero-titulo">Flujo de automatización — simulación</h1>
+        <p class="hero-contexto">
+          Replica, 100&nbsp;% en tu navegador, el patrón de los flujos reales
+          construidos con Power Automate y Power Apps: un formulario captura la
+          solicitud, un flujo la procesa nodo a nodo y una lista registra el
+          resultado. Tú tomas la decisión, como si fueras la persona
+          responsable.
+        </p>
+        <p class="aviso" role="note">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4M12 8h.01"></path>
+          </svg>
+          Simulación: no se envía nada real.
+        </p>
+        <noscript>
+          <p class="aviso">
+            Esta demo necesita JavaScript para ejecutar la simulación.
+          </p>
+        </noscript>
+        <div class="hero-acciones">
+          <a class="btn btn-ghost" href={`${withBase("/")}#proyectos`}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M19 12H5M11 18l-6-6 6-6"></path>
+            </svg>
+            Volver a proyectos
+          </a>
+          <a
+            class="btn btn-ghost"
+            href={withBase("docs/automatizacion-procesos/")}>Documentación</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PASO 1 Y PASO 2 ================= -->
+    <section class="section cuerpo-demo">
+      <div class="container tablero">
+        <!-- PASO 1 — Formulario -->
+        <section class="reveal" aria-labelledby="titulo-formulario">
+          <div class="paso-cabecera">
+            <span class="paso-numero">Paso 1</span>
+            <h2 class="paso-titulo" id="titulo-formulario">
+              Nueva solicitud de soporte
+            </h2>
+          </div>
+          <p class="paso-descripcion">
+            Formulario al estilo Power Apps. Completa los campos y envíalo para
+            iniciar el flujo.
+          </p>
+
+          <form id="form-solicitud" class="tarjeta-formulario" novalidate>
+            <fieldset class="campos" data-campos>
+              <legend class="visualmente-oculto">Datos de la solicitud</legend>
+
+              <div class="campo">
+                <label for="campo-solicitante">Solicitante</label>
+                <input
+                  type="text"
+                  id="campo-solicitante"
+                  name="solicitante"
+                  autocomplete="name"
+                  placeholder="Nombre y apellido"
+                  aria-describedby="error-solicitante"
+                />
+                <p class="error" id="error-solicitante" hidden></p>
+              </div>
+
+              <div class="campo">
+                <label for="campo-categoria">Categoría</label>
+                <select
+                  id="campo-categoria"
+                  name="categoria"
+                  aria-describedby="error-categoria"
+                >
+                  <option value="" selected>Selecciona una categoría</option>
+                  <option value="Hardware">Hardware</option>
+                  <option value="Software">Software</option>
+                  <option value="Accesos">Accesos</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <p class="error" id="error-categoria" hidden></p>
+              </div>
+
+              <fieldset
+                class="grupo-radios"
+                id="grupo-prioridad"
+                aria-describedby="ayuda-prioridad error-prioridad"
+              >
+                <legend>Prioridad</legend>
+                <div class="radios">
+                  <label class="radio-chip"
+                    ><input type="radio" name="prioridad" value="Baja" /> Baja</label
+                  >
+                  <label class="radio-chip"
+                    ><input type="radio" name="prioridad" value="Media" /> Media</label
+                  >
+                  <label class="radio-chip"
+                    ><input type="radio" name="prioridad" value="Alta" /> Alta</label
+                  >
+                </div>
+                <p class="ayuda" id="ayuda-prioridad">
+                  La prioridad alta notifica al jefe de área de inmediato.
+                </p>
+                <p class="error" id="error-prioridad" hidden></p>
+              </fieldset>
+
+              <div class="campo">
+                <label for="campo-descripcion">Descripción</label>
+                <textarea
+                  id="campo-descripcion"
+                  name="descripcion"
+                  rows="4"
+                  placeholder="¿Qué ocurre y desde cuándo?"
+                  aria-describedby="ayuda-descripcion error-descripcion"
+                ></textarea>
+                <p class="ayuda" id="ayuda-descripcion">
+                  Mínimo 10 caracteres.
+                </p>
+                <p class="error" id="error-descripcion" hidden></p>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-enviar">
+                Enviar solicitud
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                </svg>
+              </button>
+            </fieldset>
+          </form>
+        </section>
+
+        <!-- PASO 2 — Flujo -->
+        <section class="reveal" aria-labelledby="titulo-flujo">
+          <div class="paso-cabecera">
+            <span class="paso-numero">Paso 2</span>
+            <h2 class="paso-titulo" id="titulo-flujo">Recorrido del flujo</h2>
+          </div>
+          <p class="paso-descripcion">
+            Cada nodo replica una acción de Power Automate: se activa en
+            secuencia y muestra su salida.
+          </p>
+
+          <div
+            class="flujo"
+            id="panel-flujo"
+            role="group"
+            tabindex="-1"
+            aria-label="Diagrama del flujo de aprobación"
+            data-fase="reposo"
+          >
+            <p class="flujo-estado">
+              <span class="fase-punto" aria-hidden="true"></span>
+              <span data-texto-fase>En espera de una solicitud</span>
+            </p>
+
+            <ol class="nodos">
+              <!-- 1. Desencadenador -->
+              <li class="nodo" data-nodo="recepcion" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Desencadenador</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Solicitud recibida
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 2. Condición -->
+              <li class="nodo" data-nodo="condicion" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M6 3v12"></path>
+                        <circle cx="18" cy="6" r="3"></circle>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <path d="M18 9a9 9 0 0 1-9 9"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Condición</span>
+                      <h3 class="nodo-nombre" data-nombre>¿Prioridad alta?</h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="condicion-ramas" aria-hidden="true">
+                    <span class="rama" data-rama="si">SÍ</span>
+                    <span class="rama" data-rama="no">NO</span>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 3. Rama SÍ: notificar al jefe -->
+              <li
+                class="nodo nodo-rama"
+                data-nodo="notificar-jefe"
+                data-estado="pendiente"
+              >
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                        ></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Acción · Rama SÍ</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Notificar al jefe de área de inmediato
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 4. Asignar responsable -->
+              <li class="nodo" data-nodo="asignar" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                        ></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M17 11l2 2 4-4"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Acción</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Asignar responsable según categoría
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <ul class="mapa-asignacion" data-mapa>
+                    <li data-categoria="Hardware">
+                      <span>Hardware</span><span
+                        class="mapa-flecha"
+                        aria-hidden="true">→</span
+                      ><span>Soporte técnico</span>
+                    </li>
+                    <li data-categoria="Software">
+                      <span>Software</span><span
+                        class="mapa-flecha"
+                        aria-hidden="true">→</span
+                      ><span>Desarrollo</span>
+                    </li>
+                    <li data-categoria="Accesos">
+                      <span>Accesos</span><span
+                        class="mapa-flecha"
+                        aria-hidden="true">→</span
+                      ><span>Infraestructura</span>
+                    </li>
+                    <li data-categoria="Otro">
+                      <span>Otro</span><span
+                        class="mapa-flecha"
+                        aria-hidden="true">→</span
+                      ><span>Mesa de ayuda</span>
+                    </li>
+                  </ul>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 5. Aprobación interactiva -->
+              <li class="nodo" data-nodo="aprobacion" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path
+                          d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                        ></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Aprobación</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Esperando aprobación del responsable
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="zona-aprobacion" data-zona-aprobacion hidden>
+                    <p class="aprobacion-guia">
+                      Ahora decides tú, como si fueras la persona responsable.
+                    </p>
+                    <div class="campo campo-comentario">
+                      <label for="campo-comentario">Comentario (opcional)</label
+                      >
+                      <input
+                        type="text"
+                        id="campo-comentario"
+                        maxlength="140"
+                        autocomplete="off"
+                        placeholder="p. ej.: validado con el inventario"
+                      />
+                    </div>
+                    <div class="acciones-aprobacion">
+                      <button type="button" class="btn btn-primary" data-aprobar
+                        >Aprobar</button
+                      >
+                      <button
+                        type="button"
+                        class="btn btn-peligro"
+                        data-rechazar>Rechazar</button
+                      >
+                    </div>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 6. Notificación -->
+              <li class="nodo" data-nodo="correo" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                        ></path>
+                        <path d="M22 6l-10 7L2 6"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Notificación</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Correo enviado al solicitante
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+
+              <!-- 7. Registro -->
+              <li class="nodo" data-nodo="registro" data-estado="pendiente">
+                <article class="nodo-tarjeta">
+                  <div class="nodo-cabecera">
+                    <span class="nodo-icono" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                      </svg>
+                    </span>
+                    <div class="nodo-titulos">
+                      <span class="nodo-tipo">Registro</span>
+                      <h3 class="nodo-nombre" data-nombre>
+                        Guardado en la lista de seguimiento
+                      </h3>
+                    </div>
+                    <div class="nodo-meta">
+                      <span class="estado-chip"
+                        ><span class="estado-icono" aria-hidden="true"
+                        ></span><span data-estado-texto>Pendiente</span></span
+                      >
+                      <span class="nodo-hora" data-hora hidden></span>
+                    </div>
+                  </div>
+                  <div class="nodo-salida" data-salida hidden>
+                    <span class="salida-etiqueta">Salida</span>
+                    <dl class="salida-datos" data-salida-datos></dl>
+                  </div>
+                </article>
+              </li>
+            </ol>
+
+            <div class="flujo-fin" data-fin hidden>
+              <p>
+                Solicitud registrada. El flujo quedó listo para una nueva
+                ejecución.
+              </p>
+              <button type="button" class="btn btn-primary js-nueva-solicitud"
+                >Nueva solicitud</button
+              >
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= PASO 3 — SEGUIMIENTO ================= -->
+    <section
+      class="section section-alt seguimiento"
+      aria-labelledby="titulo-seguimiento"
+    >
+      <div class="container reveal">
+        <div class="seguimiento-cabecera">
+          <div>
+            <div class="paso-cabecera">
+              <span class="paso-numero">Paso 3</span>
+              <h2 class="paso-titulo" id="titulo-seguimiento">
+                Lista de seguimiento
+              </h2>
+            </div>
+            <p class="paso-descripcion">
+              Las solicitudes procesadas en esta sesión, tal como quedarían en
+              la lista de seguimiento.
+            </p>
+          </div>
+          <button type="button" class="btn btn-ghost js-nueva-solicitud"
+            >Nueva solicitud</button
+          >
+        </div>
+
+        <div class="metricas">
+          <div class="metrica">
+            <p class="metrica-valor" data-metrica="total">0</p>
+            <p class="metrica-nombre">Solicitudes procesadas</p>
+          </div>
+          <div class="metrica">
+            <p class="metrica-valor" data-metrica="aprobadas">—</p>
+            <p class="metrica-nombre">Aprobadas</p>
+          </div>
+          <div class="metrica">
+            <p class="metrica-valor" data-metrica="tiempo">—</p>
+            <p class="metrica-nombre">Tiempo medio del flujo</p>
+          </div>
+        </div>
+
+        <div
+          class="tabla-envoltura"
+          role="region"
+          aria-label="Lista de seguimiento"
+          tabindex="0"
+        >
+          <table>
+            <caption class="visualmente-oculto"
+              >Solicitudes procesadas en esta sesión</caption
+            >
+            <thead>
+              <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Solicitante</th>
+                <th scope="col">Categoría</th>
+                <th scope="col">Prioridad</th>
+                <th scope="col">Responsable</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Duración</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-seguimiento">
+              <tr id="fila-vacia" class="fila-vacia">
+                <td colspan="7"
+                  >Aún no hay solicitudes. Envía la primera desde el formulario.</td
+                >
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Colores puntuales (rechazo) con soporte de ambos temas */
+  .demo {
+    --peligro: #b42318;
+    --peligro-suave: #fbe4e1;
+  }
+  :global(html[data-theme="dark"]) .demo {
+    --peligro: #f87171;
+    --peligro-suave: #3c1f1b;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .visualmente-oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding-block: clamp(3rem, 7vw, 4.5rem) clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .hero-titulo {
+    font-size: clamp(1.9rem, 5vw, var(--text-3xl));
+    margin-top: 0.6rem;
+    max-width: 24ch;
+  }
+
+  .hero-contexto {
+    color: var(--muted);
+    max-width: 62ch;
+    margin-top: 1rem;
+    font-size: var(--text-lg);
+  }
+
+  .aviso {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    border: 1px solid var(--border);
+    font-size: var(--text-sm);
+    font-weight: 560;
+  }
+
+  .aviso svg {
+    flex: none;
+  }
+
+  .hero-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.6rem;
+  }
+
+  /* ---------- Estructura de pasos ---------- */
+  .cuerpo-demo {
+    padding-block: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .tablero {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 940px) {
+    .tablero {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+
+  .paso-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .paso-numero {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-hover);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .paso-titulo {
+    font-size: var(--text-xl);
+  }
+
+  .paso-descripcion {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    margin-top: 0.5rem;
+    margin-bottom: 1.3rem;
+    max-width: 52ch;
+  }
+
+  /* ---------- Paso 1: formulario ---------- */
+  .tarjeta-formulario {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    box-shadow: var(--shadow);
+  }
+
+  .campos {
+    border: none;
+    padding: 0;
+    margin: 0;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .campos:disabled {
+    opacity: 0.6;
+  }
+
+  .campo {
+    margin-bottom: 1.15rem;
+  }
+
+  .campo label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 560;
+    margin-bottom: 0.4rem;
+  }
+
+  .campo input,
+  .campo select,
+  .campo textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem;
+    min-height: 44px;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .campo textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .campo input::placeholder,
+  .campo textarea::placeholder {
+    color: var(--faint);
+  }
+
+  .campo :is(input, select, textarea)[aria-invalid="true"] {
+    border-color: var(--peligro);
+  }
+
+  .ayuda {
+    color: var(--faint);
+    font-size: var(--text-xs);
+    margin-top: 0.35rem;
+  }
+
+  .error {
+    color: var(--peligro);
+    font-size: var(--text-xs);
+    font-weight: 560;
+    margin-top: 0.35rem;
+  }
+
+  /* Radios como fichas accesibles */
+  .grupo-radios {
+    border: none;
+    padding: 0;
+    margin: 0 0 1.15rem;
+  }
+
+  .grupo-radios legend {
+    font-size: var(--text-sm);
+    font-weight: 560;
+    margin-bottom: 0.45rem;
+    padding: 0;
+  }
+
+  .radios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .radio-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--dur) var(--ease),
+      background var(--dur) var(--ease);
+  }
+
+  .radio-chip input {
+    accent-color: var(--accent);
+    margin: 0;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .radio-chip input:focus-visible {
+    outline: none;
+  }
+
+  .radio-chip:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .radio-chip:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .grupo-radios[data-invalido="true"] .radio-chip {
+    border-color: var(--peligro);
+  }
+
+  .btn-enviar {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.4rem;
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* ---------- Paso 2: diagrama del flujo ---------- */
+  .flujo {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: clamp(0.9rem, 2.5vw, 1.5rem);
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .flujo-estado {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--muted);
+    padding: 0.35rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    width: fit-content;
+  }
+
+  .fase-punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--faint);
+    flex: none;
+    transition: background var(--dur) var(--ease);
+  }
+
+  .flujo[data-fase="ejecutando"] .fase-punto,
+  .flujo[data-fase="esperando"] .fase-punto,
+  .flujo[data-fase="completado"] .fase-punto {
+    background: var(--accent);
+  }
+
+  .nodos {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+  }
+
+  /* Conector vertical entre nodos */
+  .nodo:not(:last-child)::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 26px;
+    margin: 0 auto;
+    background: var(--border-strong);
+    transition: background var(--dur) var(--ease);
+  }
+
+  .nodo[data-estado="completado"]:not(:last-child)::after {
+    background: var(--accent);
+  }
+
+  .nodo-tarjeta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow);
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      background-color 0.3s var(--ease);
+  }
+
+  /* Estados atenuados solo con decoración (fondo, borde, sombra):
+     el texto conserva el color pleno de los tokens para no perder AA */
+  .nodo[data-estado="pendiente"] .nodo-tarjeta {
+    background: var(--bg-soft);
+    box-shadow: none;
+  }
+
+  .nodo[data-estado="en-curso"] .nodo-tarjeta {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .nodo[data-estado="omitido"] .nodo-tarjeta {
+    background: var(--bg-soft);
+    border-style: dashed;
+    box-shadow: none;
+  }
+
+  /* Rama de la condición */
+  .nodo-rama .nodo-tarjeta {
+    margin-left: clamp(1.25rem, 5vw, 2.5rem);
+    border-left: 3px solid var(--accent);
+  }
+
+  .nodo-rama[data-estado="pendiente"] .nodo-tarjeta,
+  .nodo-rama[data-estado="omitido"] .nodo-tarjeta {
+    border-left-color: var(--border-strong);
+  }
+
+  .nodo-cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .nodo-icono {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .nodo[data-estado="pendiente"] .nodo-icono,
+  .nodo[data-estado="omitido"] .nodo-icono {
+    background: var(--bg);
+    color: var(--faint);
+  }
+
+  .nodo-titulos {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nodo-tipo {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .nodo-nombre {
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+  }
+
+  .nodo-meta {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+  }
+
+  .estado-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  .nodo[data-estado="en-curso"] .estado-chip {
+    color: var(--accent);
+  }
+
+  .nodo[data-estado="completado"] .estado-chip {
+    color: var(--muted);
+  }
+
+  .estado-icono {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+  }
+
+  .nodo[data-estado="en-curso"] .estado-icono {
+    border-color: var(--accent-soft);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent);
+    animation: girar 1s linear infinite;
+  }
+
+  .nodo[data-estado="completado"] .estado-icono {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  .nodo[data-estado="omitido"] .estado-icono {
+    border-style: dashed;
+  }
+
+  @keyframes girar {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .nodo-hora {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+
+  /* Ramas SÍ/NO de la condición */
+  .condicion-ramas {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+  }
+
+  .rama {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    transition:
+      border-color var(--dur) var(--ease),
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .rama[data-activa="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-weight: 600;
+  }
+
+  /* Mapa de asignación */
+  .mapa-asignacion {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+  }
+
+  .mapa-asignacion li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .mapa-asignacion li[data-activa="true"] {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-weight: 600;
+  }
+
+  .mapa-flecha {
+    flex: none;
+  }
+
+  /* Zona de aprobación interactiva */
+  .zona-aprobacion {
+    margin-top: 0.9rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.9rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .aprobacion-guia {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .campo-comentario {
+    margin-bottom: 0;
+  }
+
+  .acciones-aprobacion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .btn-peligro {
+    background: transparent;
+    color: var(--peligro);
+    border-color: var(--peligro);
+  }
+
+  .btn-peligro:hover {
+    background: var(--peligro-suave);
+  }
+
+  /* Salida del nodo (estilo "output" de Power Automate) */
+  .nodo-salida {
+    margin-top: 0.8rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.7rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nodo-salida {
+      animation: aparecer 0.45s var(--ease);
+    }
+  }
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+
+  .salida-etiqueta {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .salida-datos {
+    margin: 0.4rem 0 0;
+    display: grid;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .salida-datos :global(.salida-fila) {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .salida-datos :global(dt) {
+    flex: none;
+    color: var(--accent-hover);
+  }
+
+  .salida-datos :global(dt)::after {
+    content: ":";
+  }
+
+  .salida-datos :global(dd) {
+    margin: 0;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  /* Cierre del flujo */
+  .flujo-fin {
+    margin-top: 1.25rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  /* ---------- Paso 3: seguimiento ---------- */
+  .seguimiento {
+    padding-block: clamp(3rem, 7vw, 5rem);
+  }
+
+  .seguimiento-cabecera {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .seguimiento-cabecera .paso-descripcion {
+    margin-bottom: 0;
+  }
+
+  .metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .metrica {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+  }
+
+  .metrica-valor {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .metrica-nombre {
+    color: var(--muted);
+    font-size: var(--text-xs);
+    margin-top: 0.3rem;
+  }
+
+  .tabla-envoltura {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .tabla-envoltura table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  /* :global(): las filas de la tabla se crean por JS y no llevan
+     la clase de ámbito que Astro añade al marcado del componente */
+  .tabla-envoltura :global(th),
+  .tabla-envoltura :global(td) {
+    text-align: left;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tabla-envoltura thead th {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--bg-soft);
+    font-weight: 600;
+  }
+
+  .tabla-envoltura tbody :global(th[scope="row"]) {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .tabla-envoltura tbody :global(tr:last-child th),
+  .tabla-envoltura tbody :global(tr:last-child td) {
+    border-bottom: none;
+  }
+
+  .fila-vacia td {
+    text-align: center;
+    color: var(--faint);
+    padding-block: 2.2rem;
+  }
+
+  :global(.badge) {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.65rem;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  :global(.badge[data-decision="aprobada"]) {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+  }
+
+  :global(.badge[data-decision="rechazada"]) {
+    background: var(--peligro-suave);
+    color: var(--peligro);
+  }
+
+  :global(.celda-duracion) {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+  // ============================================================
+  //  Simulación del flujo de aprobación (100 % en el navegador)
+  // ============================================================
+  type Categoria = "Hardware" | "Software" | "Accesos" | "Otro";
+  type Prioridad = "Baja" | "Media" | "Alta";
+  type Decision = "aprobada" | "rechazada";
+  type EstadoNodo = "pendiente" | "en-curso" | "completado" | "omitido";
+  type Fase = "reposo" | "ejecutando" | "esperando" | "completado";
+
+  interface Solicitud {
+    id: string;
+    hora: string;
+    solicitante: string;
+    categoria: Categoria;
+    prioridad: Prioridad;
+    descripcion: string;
+  }
+
+  interface Resolucion {
+    decision: Decision;
+    comentario: string;
+  }
+
+  const RESPONSABLES: Record<Categoria, string> = {
+    Hardware: "Soporte técnico",
+    Software: "Desarrollo",
+    Accesos: "Infraestructura",
+    Otro: "Mesa de ayuda",
+  };
+
+  const TEXTO_ESTADO: Record<EstadoNodo, string> = {
+    pendiente: "Pendiente",
+    "en-curso": "En curso",
+    completado: "Completado",
+    omitido: "Omitido",
+  };
+
+  const TEXTO_FASE: Record<Fase, string> = {
+    reposo: "En espera de una solicitud",
+    ejecutando: "Ejecutando flujo…",
+    esperando: "Esperando la decisión del responsable",
+    completado: "Flujo completado",
+  };
+
+  const NODOS = [
+    "recepcion",
+    "condicion",
+    "notificar-jefe",
+    "asignar",
+    "aprobacion",
+    "correo",
+    "registro",
+  ] as const;
+
+  const NOMBRE_APROBACION = "Esperando aprobación del responsable";
+  const NOMBRE_CORREO = "Correo enviado al solicitante";
+
+  function q<T extends Element>(
+    selector: string,
+    raiz: ParentNode = document,
+  ): T {
+    const elemento = raiz.querySelector<T>(selector);
+    if (!elemento) throw new Error(`Elemento no encontrado: ${selector}`);
+    return elemento;
+  }
+
+  // ---------- Referencias ----------
+  const formulario = q<HTMLFormElement>("#form-solicitud");
+  const campos = q<HTMLFieldSetElement>("[data-campos]");
+  const campoSolicitante = q<HTMLInputElement>("#campo-solicitante");
+  const campoCategoria = q<HTMLSelectElement>("#campo-categoria");
+  const campoDescripcion = q<HTMLTextAreaElement>("#campo-descripcion");
+  const grupoPrioridad = q<HTMLFieldSetElement>("#grupo-prioridad");
+  const errorSolicitante = q<HTMLElement>("#error-solicitante");
+  const errorCategoria = q<HTMLElement>("#error-categoria");
+  const errorPrioridad = q<HTMLElement>("#error-prioridad");
+  const errorDescripcion = q<HTMLElement>("#error-descripcion");
+  const panel = q<HTMLElement>("#panel-flujo");
+  const textoFase = q<HTMLElement>("[data-texto-fase]");
+  const zonaAprobacion = q<HTMLElement>("[data-zona-aprobacion]");
+  const campoComentario = q<HTMLInputElement>("#campo-comentario");
+  const btnAprobar = q<HTMLButtonElement>("[data-aprobar]");
+  const btnRechazar = q<HTMLButtonElement>("[data-rechazar]");
+  const finFlujo = q<HTMLElement>("[data-fin]");
+  const cuerpoTabla = q<HTMLTableSectionElement>("#cuerpo-seguimiento");
+  const filaVacia = q<HTMLTableRowElement>("#fila-vacia");
+  const zonaAnuncios = q<HTMLElement>("[data-anuncios]");
+  const metricaTotal = q<HTMLElement>('[data-metrica="total"]');
+  const metricaAprobadas = q<HTMLElement>('[data-metrica="aprobadas"]');
+  const metricaTiempo = q<HTMLElement>('[data-metrica="tiempo"]');
+  const botonesNueva = Array.from(
+    document.querySelectorAll<HTMLButtonElement>(".js-nueva-solicitud"),
+  );
+
+  // ---------- Estado de la sesión ----------
+  let contador = 0;
+  let enEjecucion = false;
+  let resolverDecision: ((valor: Resolucion) => void) | null = null;
+  let totalSolicitudes = 0;
+  let totalAprobadas = 0;
+  let sumaDuraciones = 0;
+
+  // ---------- Utilidades ----------
+  const reducirMovimiento = (): boolean =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const pausa = (ms: number): Promise<void> =>
+    new Promise((resolver) => {
+      window.setTimeout(resolver, reducirMovimiento() ? 0 : ms);
+    });
+
+  const horaActual = (): string =>
+    new Date().toLocaleTimeString("es-CO", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+
+  const formatearSegundos = (valor: number): string =>
+    valor.toLocaleString("es-CO", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+
+  const truncar = (texto: string, maximo: number): string =>
+    texto.length > maximo ? `${texto.slice(0, maximo - 1)}…` : texto;
+
+  function anunciar(mensaje: string): void {
+    zonaAnuncios.textContent = mensaje;
+  }
+
+  function fijarFase(fase: Fase): void {
+    panel.dataset.fase = fase;
+    textoFase.textContent = TEXTO_FASE[fase];
+  }
+
+  // ---------- Nodos del diagrama ----------
+  function fijarEstado(nombre: string, estado: EstadoNodo): void {
+    const nodo = q<HTMLElement>(`[data-nodo="${nombre}"]`);
+    nodo.dataset.estado = estado;
+    q<HTMLElement>("[data-estado-texto]", nodo).textContent =
+      TEXTO_ESTADO[estado];
+    if (estado !== "pendiente") {
+      const hora = q<HTMLElement>("[data-hora]", nodo);
+      hora.hidden = false;
+      hora.textContent = horaActual();
+    }
+    if (estado === "en-curso") {
+      nodo.scrollIntoView({
+        block: "nearest",
+        behavior: reducirMovimiento() ? "auto" : "smooth",
+      });
+    }
+  }
+
+  function fijarSalida(
+    nombre: string,
+    pares: ReadonlyArray<readonly [string, string]>,
+  ): void {
+    const nodo = q<HTMLElement>(`[data-nodo="${nombre}"]`);
+    const salida = q<HTMLElement>("[data-salida]", nodo);
+    const datos = q<HTMLElement>("[data-salida-datos]", nodo);
+    datos.replaceChildren(
+      ...pares.map(([clave, valor]) => {
+        const fila = document.createElement("div");
+        fila.className = "salida-fila";
+        const dt = document.createElement("dt");
+        dt.textContent = clave;
+        const dd = document.createElement("dd");
+        dd.textContent = valor;
+        fila.append(dt, dd);
+        return fila;
+      }),
+    );
+    salida.hidden = false;
+  }
+
+  function marcarRama(esAlta: boolean): void {
+    q<HTMLElement>(`[data-rama="${esAlta ? "si" : "no"}"]`).dataset.activa =
+      "true";
+  }
+
+  function reiniciarDiagrama(): void {
+    NODOS.forEach((nombre) => {
+      const nodo = q<HTMLElement>(`[data-nodo="${nombre}"]`);
+      nodo.dataset.estado = "pendiente";
+      q<HTMLElement>("[data-estado-texto]", nodo).textContent =
+        TEXTO_ESTADO.pendiente;
+      const hora = q<HTMLElement>("[data-hora]", nodo);
+      hora.hidden = true;
+      hora.textContent = "";
+      q<HTMLElement>("[data-salida]", nodo).hidden = true;
+      q<HTMLElement>("[data-salida-datos]", nodo).replaceChildren();
+    });
+    q<HTMLElement>('[data-nodo="aprobacion"] [data-nombre]').textContent =
+      NOMBRE_APROBACION;
+    q<HTMLElement>('[data-nodo="correo"] [data-nombre]').textContent =
+      NOMBRE_CORREO;
+    document
+      .querySelectorAll<HTMLElement>("[data-rama]")
+      .forEach((rama) => rama.removeAttribute("data-activa"));
+    document
+      .querySelectorAll<HTMLElement>("[data-mapa] li")
+      .forEach((fila) => fila.removeAttribute("data-activa"));
+    zonaAprobacion.hidden = true;
+    finFlujo.hidden = true;
+  }
+
+  // ---------- Aprobación interactiva ----------
+  function esperarDecision(): Promise<Resolucion> {
+    return new Promise((resolver) => {
+      resolverDecision = resolver;
+    });
+  }
+
+  function decidir(decision: Decision): void {
+    if (!resolverDecision) return;
+    const entregar = resolverDecision;
+    resolverDecision = null;
+    const comentario = campoComentario.value.trim();
+    campoComentario.value = "";
+    entregar({ decision, comentario });
+  }
+
+  btnAprobar.addEventListener("click", () => decidir("aprobada"));
+  btnRechazar.addEventListener("click", () => decidir("rechazada"));
+
+  // ---------- Seguimiento ----------
+  function actualizarMetricas(): void {
+    metricaTotal.textContent = String(totalSolicitudes);
+    if (totalSolicitudes === 0) {
+      metricaAprobadas.textContent = "—";
+      metricaTiempo.textContent = "—";
+      return;
+    }
+    metricaAprobadas.textContent = `${Math.round(
+      (totalAprobadas / totalSolicitudes) * 100,
+    )} %`;
+    metricaTiempo.textContent = `${formatearSegundos(
+      sumaDuraciones / totalSolicitudes,
+    )} s`;
+  }
+
+  function agregarRegistro(
+    datos: Solicitud,
+    responsable: string,
+    decision: Decision,
+    duracion: number,
+  ): void {
+    filaVacia.hidden = true;
+    const fila = document.createElement("tr");
+
+    const celdaId = document.createElement("th");
+    celdaId.scope = "row";
+    celdaId.textContent = datos.id;
+    fila.append(celdaId);
+
+    [datos.solicitante, datos.categoria, datos.prioridad, responsable].forEach(
+      (texto) => {
+        const celda = document.createElement("td");
+        celda.textContent = texto;
+        fila.append(celda);
+      },
+    );
+
+    const celdaEstado = document.createElement("td");
+    const insignia = document.createElement("span");
+    insignia.className = "badge";
+    insignia.dataset.decision = decision;
+    insignia.textContent = decision === "aprobada" ? "Aprobada" : "Rechazada";
+    celdaEstado.append(insignia);
+    fila.append(celdaEstado);
+
+    const celdaDuracion = document.createElement("td");
+    celdaDuracion.className = "celda-duracion";
+    celdaDuracion.textContent = `${formatearSegundos(duracion)} s`;
+    fila.append(celdaDuracion);
+
+    cuerpoTabla.append(fila);
+
+    totalSolicitudes += 1;
+    if (decision === "aprobada") totalAprobadas += 1;
+    sumaDuraciones += duracion;
+    actualizarMetricas();
+  }
+
+  // ---------- Ejecución del flujo ----------
+  function bloquearFormulario(bloquear: boolean): void {
+    campos.disabled = bloquear;
+    botonesNueva.forEach((boton) => {
+      boton.disabled = bloquear;
+    });
+  }
+
+  async function ejecutarFlujo(datos: Solicitud): Promise<void> {
+    enEjecucion = true;
+    bloquearFormulario(true);
+    reiniciarDiagrama();
+    fijarFase("ejecutando");
+
+    const rect = panel.getBoundingClientRect();
+    if (rect.top < 0 || rect.top > window.innerHeight * 0.6) {
+      panel.scrollIntoView({
+        block: "start",
+        behavior: reducirMovimiento() ? "auto" : "smooth",
+      });
+    }
+    panel.focus({ preventScroll: true });
+
+    const inicio = performance.now();
+
+    // 1. Desencadenador
+    fijarEstado("recepcion", "en-curso");
+    await pausa(700);
+    fijarEstado("recepcion", "completado");
+    fijarSalida("recepcion", [
+      ["id", datos.id],
+      ["hora", datos.hora],
+      ["solicitante", datos.solicitante],
+      ["descripción", truncar(datos.descripcion, 60)],
+    ]);
+    anunciar(`Solicitud ${datos.id} recibida.`);
+
+    // 2. Condición
+    fijarEstado("condicion", "en-curso");
+    await pausa(800);
+    const esAlta = datos.prioridad === "Alta";
+    marcarRama(esAlta);
+    fijarEstado("condicion", "completado");
+    fijarSalida("condicion", [
+      ["expresión", 'prioridad es "Alta"'],
+      ["resultado", esAlta ? "SÍ" : "NO"],
+    ]);
+
+    // 3. Rama SÍ: notificar al jefe de área
+    if (esAlta) {
+      fijarEstado("notificar-jefe", "en-curso");
+      await pausa(650);
+      fijarEstado("notificar-jefe", "completado");
+      fijarSalida("notificar-jefe", [
+        ["destinatario", "Jefe de área"],
+        ["canal", "Correo y Teams"],
+      ]);
+    } else {
+      fijarEstado("notificar-jefe", "omitido");
+    }
+
+    // 4. Asignar responsable según categoría
+    fijarEstado("asignar", "en-curso");
+    await pausa(900);
+    const responsable = RESPONSABLES[datos.categoria];
+    q<HTMLElement>(
+      `[data-mapa] li[data-categoria="${datos.categoria}"]`,
+    ).dataset.activa = "true";
+    fijarEstado("asignar", "completado");
+    fijarSalida("asignar", [
+      ["categoría", datos.categoria],
+      ["responsable", responsable],
+    ]);
+
+    // 5. Aprobación interactiva: el flujo se detiene aquí
+    q<HTMLElement>('[data-nodo="aprobacion"] [data-nombre]').textContent =
+      `Esperando aprobación de ${responsable}`;
+    fijarEstado("aprobacion", "en-curso");
+    fijarFase("esperando");
+    zonaAprobacion.hidden = false;
+    btnAprobar.focus();
+    anunciar(
+      `Esperando aprobación de ${responsable}. Decide como responsable: aprobar o rechazar.`,
+    );
+    const { decision, comentario } = await esperarDecision();
+    // El foco suele estar en Aprobar/Rechazar: se mueve al panel del flujo
+    // (tabindex="-1") antes de ocultar la zona para que no caiga en <body>.
+    if (zonaAprobacion.contains(document.activeElement)) {
+      panel.focus({ preventScroll: true });
+    }
+    zonaAprobacion.hidden = true;
+    fijarFase("ejecutando");
+    fijarEstado("aprobacion", "completado");
+    const salidaAprobacion: Array<[string, string]> = [
+      ["decisión", decision === "aprobada" ? "Aprobada" : "Rechazada"],
+      ["responsable", responsable],
+    ];
+    if (comentario) salidaAprobacion.push(["comentario", comentario]);
+    fijarSalida("aprobacion", salidaAprobacion);
+    anunciar(`Solicitud ${datos.id} ${decision} por ${responsable}.`);
+
+    // 6. Notificación al solicitante
+    fijarEstado("correo", "en-curso");
+    await pausa(800);
+    fijarEstado("correo", "completado");
+    q<HTMLElement>('[data-nodo="correo"] [data-nombre]').textContent =
+      `Correo enviado al solicitante: ${decision}`;
+    fijarSalida("correo", [
+      ["para", datos.solicitante],
+      ["asunto", `Tu solicitud ${datos.id} fue ${decision}`],
+    ]);
+
+    // 7. Registro en la lista de seguimiento
+    fijarEstado("registro", "en-curso");
+    await pausa(650);
+    const duracion = (performance.now() - inicio) / 1000;
+    fijarEstado("registro", "completado");
+    fijarSalida("registro", [
+      ["lista", "Seguimiento de solicitudes"],
+      ["duración", `${formatearSegundos(duracion)} s`],
+    ]);
+
+    agregarRegistro(datos, responsable, decision, duracion);
+    fijarFase("completado");
+    finFlujo.hidden = false;
+    anunciar(
+      `Flujo completado. Solicitud ${datos.id} registrada en la lista de seguimiento.`,
+    );
+
+    enEjecucion = false;
+    bloquearFormulario(false);
+  }
+
+  // ---------- Validación del formulario ----------
+  function mostrarError(
+    campo: HTMLElement,
+    error: HTMLElement,
+    mensaje: string,
+  ): void {
+    error.textContent = mensaje;
+    error.hidden = false;
+    campo.setAttribute("aria-invalid", "true");
+  }
+
+  function limpiarError(campo: HTMLElement, error: HTMLElement): void {
+    error.hidden = true;
+    error.textContent = "";
+    campo.removeAttribute("aria-invalid");
+  }
+
+  function limpiarErrores(): void {
+    limpiarError(campoSolicitante, errorSolicitante);
+    limpiarError(campoCategoria, errorCategoria);
+    limpiarError(campoDescripcion, errorDescripcion);
+    errorPrioridad.hidden = true;
+    errorPrioridad.textContent = "";
+    grupoPrioridad.removeAttribute("data-invalido");
+  }
+
+  campoSolicitante.addEventListener("input", () => {
+    if (campoSolicitante.value.trim())
+      limpiarError(campoSolicitante, errorSolicitante);
+  });
+  campoCategoria.addEventListener("change", () => {
+    if (campoCategoria.value) limpiarError(campoCategoria, errorCategoria);
+  });
+  campoDescripcion.addEventListener("input", () => {
+    if (campoDescripcion.value.trim().length >= 10) {
+      limpiarError(campoDescripcion, errorDescripcion);
+    }
+  });
+  formulario
+    .querySelectorAll<HTMLInputElement>('input[name="prioridad"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", () => {
+        errorPrioridad.hidden = true;
+        errorPrioridad.textContent = "";
+        grupoPrioridad.removeAttribute("data-invalido");
+      });
+    });
+
+  formulario.addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    if (enEjecucion) return;
+
+    let primerFoco: HTMLElement | null = null;
+
+    const solicitante = campoSolicitante.value.trim();
+    if (!solicitante) {
+      mostrarError(
+        campoSolicitante,
+        errorSolicitante,
+        "Escribe el nombre de quien solicita.",
+      );
+      primerFoco = campoSolicitante;
+    } else {
+      limpiarError(campoSolicitante, errorSolicitante);
+    }
+
+    const categoria = campoCategoria.value;
+    if (!categoria) {
+      mostrarError(campoCategoria, errorCategoria, "Selecciona una categoría.");
+      if (!primerFoco) primerFoco = campoCategoria;
+    } else {
+      limpiarError(campoCategoria, errorCategoria);
+    }
+
+    const radio = formulario.querySelector<HTMLInputElement>(
+      'input[name="prioridad"]:checked',
+    );
+    if (!radio) {
+      errorPrioridad.textContent = "Selecciona una prioridad.";
+      errorPrioridad.hidden = false;
+      grupoPrioridad.dataset.invalido = "true";
+      if (!primerFoco) {
+        primerFoco = q<HTMLInputElement>('input[name="prioridad"]', formulario);
+      }
+    } else {
+      errorPrioridad.hidden = true;
+      errorPrioridad.textContent = "";
+      grupoPrioridad.removeAttribute("data-invalido");
+    }
+
+    const descripcion = campoDescripcion.value.trim();
+    if (descripcion.length < 10) {
+      mostrarError(
+        campoDescripcion,
+        errorDescripcion,
+        "Describe el caso con al menos 10 caracteres.",
+      );
+      if (!primerFoco) primerFoco = campoDescripcion;
+    } else {
+      limpiarError(campoDescripcion, errorDescripcion);
+    }
+
+    if (
+      primerFoco ||
+      !solicitante ||
+      !categoria ||
+      !radio ||
+      descripcion.length < 10
+    ) {
+      primerFoco?.focus();
+      return;
+    }
+
+    contador += 1;
+    const solicitud: Solicitud = {
+      id: `SOL-${String(contador).padStart(3, "0")}`,
+      hora: horaActual(),
+      solicitante,
+      categoria: categoria as Categoria,
+      prioridad: radio.value as Prioridad,
+      descripcion,
+    };
+    void ejecutarFlujo(solicitud);
+  });
+
+  // ---------- Nueva solicitud (conserva la tabla) ----------
+  botonesNueva.forEach((boton) => {
+    boton.addEventListener("click", () => {
+      if (enEjecucion) return;
+      formulario.reset();
+      limpiarErrores();
+      reiniciarDiagrama();
+      fijarFase("reposo");
+      anunciar("Formulario reiniciado. La lista de seguimiento se conserva.");
+      campoSolicitante.focus();
+    });
+  });
+</script>

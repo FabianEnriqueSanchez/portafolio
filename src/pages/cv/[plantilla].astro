@@ -1,0 +1,43 @@
+---
+// ============================================================
+//  /cv/[plantilla] — vistas previas de cada plantilla de CV
+//  (moderna, clasica, compacta). Son páginas de trabajo para
+//  elegir plantilla desde el panel: llevan noindex.
+// ============================================================
+import CvLayout from "../../layouts/CvLayout.astro";
+import CvModerna from "../../components/cv/CvModerna.astro";
+import CvClasica from "../../components/cv/CvClasica.astro";
+import CvCompacta from "../../components/cv/CvCompacta.astro";
+import { perfil, PLANTILLAS_CV, type PlantillaCV } from "../../data/site";
+
+export function getStaticPaths() {
+  return PLANTILLAS_CV.map((plantilla) => ({ params: { plantilla } }));
+}
+
+const plantilla = Astro.params.plantilla as PlantillaCV;
+
+const plantillas = {
+  moderna: CvModerna,
+  clasica: CvClasica,
+  compacta: CvCompacta,
+};
+
+const ETIQUETAS: Record<PlantillaCV, string> = {
+  moderna: "moderna",
+  clasica: "clásica",
+  compacta: "compacta",
+};
+
+const Plantilla = plantillas[plantilla];
+const etiqueta = ETIQUETAS[plantilla];
+---
+
+<CvLayout
+  titulo={`CV — ${perfil.nombre} (${etiqueta})`}
+  descripcion={`Vista previa de la plantilla ${etiqueta} de la hoja de vida de ${perfil.nombre}.`}
+  plantillaActual={plantilla}
+  margenPagina={plantilla === "compacta" ? "10mm" : undefined}
+  noindex
+>
+  <Plantilla />
+</CvLayout>

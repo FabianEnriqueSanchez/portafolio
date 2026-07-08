@@ -1,0 +1,29 @@
+---
+// ============================================================
+//  /cv — hoja de vida pública. Renderiza la plantilla ACTIVA
+//  configurada en src/data/site.json (cv.plantilla). Las vistas
+//  previas de cada plantilla viven en /cv/[plantilla].
+// ============================================================
+import CvLayout from "../../layouts/CvLayout.astro";
+import CvModerna from "../../components/cv/CvModerna.astro";
+import CvClasica from "../../components/cv/CvClasica.astro";
+import CvCompacta from "../../components/cv/CvCompacta.astro";
+import { perfil, cv } from "../../data/site";
+
+const plantillas = {
+  moderna: CvModerna,
+  clasica: CvClasica,
+  compacta: CvCompacta,
+};
+
+const Plantilla = plantillas[cv.plantilla];
+---
+
+<CvLayout
+  titulo={`CV — ${perfil.nombre}`}
+  descripcion={`Hoja de vida de ${perfil.nombre}, ${perfil.rol}. Disponible para descargar en PDF.`}
+  plantillaActual={cv.plantilla}
+  margenPagina={cv.plantilla === "compacta" ? "10mm" : undefined}
+>
+  <Plantilla />
+</CvLayout>

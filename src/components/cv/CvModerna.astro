@@ -1,0 +1,508 @@
+---
+// ============================================================
+//  Plantilla de CV "Moderna": dos columnas con sidebar teal
+//  suave (contacto, stack, idiomas, certificaciones) y columna
+//  principal con nombre grande, perfil, experiencia con
+//  timeline fina y formación.
+// ============================================================
+import {
+  perfil,
+  cv,
+  experiencia,
+  educacion,
+  certificaciones,
+  idiomas,
+  sobreMi,
+} from "../../data/site";
+
+const telHref = `tel:${perfil.telefono.replace(/[^+\d]/g, "")}`;
+const sinProtocolo = (url: string) =>
+  url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+---
+
+<article class="cv-moderna">
+  <div class="principal">
+    <header class="cabecera">
+      <h1>{perfil.nombre}</h1>
+      <p class="rol">{perfil.rol}</p>
+    </header>
+
+    <section class="bloque" aria-labelledby="m-perfil">
+      <h2 id="m-perfil">Perfil profesional</h2>
+      <p class="perfil-texto">{cv.perfilProfesional}</p>
+    </section>
+
+    <section class="bloque" aria-labelledby="m-experiencia">
+      <h2 id="m-experiencia">Experiencia</h2>
+      <ol class="timeline">
+        {
+          experiencia.map((exp) => (
+            <li class="entrada">
+              <h3>{exp.puesto}</h3>
+              <p class="meta">
+                {exp.empresa}{" "}
+                <span class="punto" aria-hidden="true">
+                  ·
+                </span>{" "}
+                {exp.periodo}
+              </p>
+              <ul class="puntos">
+                {exp.puntos.map((punto) => (
+                  <li>{punto}</li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="bloque" aria-labelledby="m-formacion">
+      <h2 id="m-formacion">Formación</h2>
+      <ul class="formacion">
+        {
+          educacion.map((edu) => (
+            <li class="entrada-edu">
+              <h3>{edu.titulo}</h3>
+              <p class="meta">
+                {edu.institucion}{" "}
+                <span class="punto" aria-hidden="true">
+                  ·
+                </span>{" "}
+                {edu.periodo}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+
+  <aside class="lateral">
+    <section class="bloque-lateral" aria-labelledby="m-contacto">
+      <h2 id="m-contacto">Contacto</h2>
+      <ul class="contacto">
+        <li>
+          <span class="etiqueta-dato">Email</span>
+          <a href={`mailto:${perfil.email}`}>{perfil.email}</a>
+        </li>
+        {
+          perfil.telefono && (
+            <li>
+              <span class="etiqueta-dato">Teléfono</span>
+              <a href={telHref}>{perfil.telefono}</a>
+            </li>
+          )
+        }
+        <li>
+          <span class="etiqueta-dato">Ubicación</span>
+          <span>{perfil.ubicacion}</span>
+        </li>
+        {
+          perfil.social.github && (
+            <li>
+              <span class="etiqueta-dato">GitHub</span>
+              <a href={perfil.social.github} rel="noopener">
+                {sinProtocolo(perfil.social.github)}
+              </a>
+            </li>
+          )
+        }
+        {
+          perfil.social.linkedin && (
+            <li>
+              <span class="etiqueta-dato">LinkedIn</span>
+              <a href={perfil.social.linkedin} rel="noopener">
+                {sinProtocolo(perfil.social.linkedin)}
+              </a>
+            </li>
+          )
+        }
+      </ul>
+    </section>
+
+    <section class="bloque-lateral" aria-labelledby="m-stack">
+      <h2 id="m-stack">Stack técnico</h2>
+      <ul class="stack">
+        {sobreMi.stack.map((tec) => <li>{tec}</li>)}
+      </ul>
+    </section>
+
+    <section class="bloque-lateral" aria-labelledby="m-idiomas">
+      <h2 id="m-idiomas">Idiomas</h2>
+      <ul class="idiomas">
+        {
+          idiomas.map((i) => (
+            <li>
+              <span class="idioma-nombre">{i.idioma}</span>
+              <span class="idioma-nivel">{i.nivel}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="bloque-lateral" aria-labelledby="m-certificaciones">
+      <h2 id="m-certificaciones">Certificaciones</h2>
+      <ul class="certificaciones">
+        {
+          certificaciones.map((cert) => (
+            <li>
+              <span class="cert-nombre">{cert.nombre}</span>
+              <span class="cert-meta">
+                {cert.entidad} · {cert.año}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </aside>
+</article>
+
+<style>
+  /* Paleta local del documento (el CV siempre se sirve en claro) */
+  .cv-moderna {
+    --cv-tinta: #1c1917;
+    --cv-gris: #57534e;
+    /* 6.2:1 sobre el fondo del sidebar (#edf5f3): AA para texto pequeño */
+    --cv-gris-suave: #5f5952;
+    --cv-teal: #0f766e;
+    --cv-teal-oscuro: #115e58;
+    --cv-teal-fondo: #edf5f3;
+    --cv-teal-linea: #cfe3df;
+
+    display: grid;
+    grid-template-columns: minmax(0, 32%) minmax(0, 1fr);
+    color: var(--cv-tinta);
+    font-family: var(--font-sans);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  /* ---------- Columna principal (en el DOM va primero: mejor lectura) ---------- */
+  .principal {
+    grid-column: 2;
+    grid-row: 1;
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 4vw, 2.25rem);
+    min-width: 0;
+  }
+
+  .cabecera h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 4.5vw, 2.15rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--cv-tinta);
+  }
+
+  .rol {
+    margin-top: 0.45rem;
+    font-size: 0.98rem;
+    font-weight: 560;
+    color: var(--cv-teal);
+  }
+
+  .bloque {
+    margin-top: 1.9rem;
+  }
+
+  .bloque h2 {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 680;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cv-teal-oscuro);
+    margin-bottom: 0.8rem;
+  }
+
+  .perfil-texto {
+    color: var(--cv-gris);
+  }
+
+  /* ---------- Timeline fina de experiencia ---------- */
+  .timeline {
+    list-style: none;
+    padding: 0;
+  }
+
+  .entrada {
+    position: relative;
+    padding-left: 1.3rem;
+    padding-bottom: 1.4rem;
+    border-left: 2px solid var(--cv-teal-linea);
+  }
+
+  .entrada:last-child {
+    padding-bottom: 0.2rem;
+  }
+
+  .entrada::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 0.4em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cv-teal);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .entrada h3,
+  .entrada-edu h3 {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 640;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+
+  .meta {
+    margin-top: 0.15rem;
+    font-size: 0.83rem;
+    color: var(--cv-gris-suave);
+  }
+
+  .punto {
+    color: var(--cv-teal);
+  }
+
+  .puntos {
+    margin-top: 0.55rem;
+    padding-left: 1.1rem;
+  }
+
+  .puntos li {
+    margin-bottom: 0.3rem;
+    color: var(--cv-gris);
+  }
+
+  .puntos li::marker {
+    color: var(--cv-teal);
+  }
+
+  /* ---------- Formación ---------- */
+  .formacion {
+    list-style: none;
+    padding: 0;
+  }
+
+  .entrada-edu {
+    padding-bottom: 0.9rem;
+  }
+
+  .entrada-edu:last-child {
+    padding-bottom: 0;
+  }
+
+  /* ---------- Sidebar teal suave ---------- */
+  .lateral {
+    grid-column: 1;
+    grid-row: 1;
+    background: var(--cv-teal-fondo);
+    border-right: 1px solid var(--cv-teal-linea);
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.1rem, 3vw, 1.5rem);
+    min-width: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .bloque-lateral + .bloque-lateral {
+    margin-top: 1.7rem;
+  }
+
+  .bloque-lateral h2 {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 680;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cv-teal-oscuro);
+    border-bottom: 1px solid var(--cv-teal-linea);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .contacto {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .contacto li {
+    display: grid;
+    gap: 0.05rem;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+  }
+
+  .etiqueta-dato {
+    font-size: 0.68rem;
+    font-weight: 620;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-gris-suave);
+  }
+
+  .contacto a {
+    color: var(--cv-teal-oscuro);
+    text-decoration: underline;
+    text-decoration-color: var(--cv-teal-linea);
+    text-underline-offset: 2px;
+  }
+
+  .contacto a:hover {
+    text-decoration-color: var(--cv-teal);
+  }
+
+  /* Stack como etiquetas */
+  .stack {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .stack li {
+    font-size: 0.74rem;
+    font-weight: 540;
+    color: var(--cv-teal-oscuro);
+    background: #fff;
+    border: 1px solid var(--cv-teal-linea);
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .idiomas {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .idiomas li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .idioma-nombre {
+    font-weight: 600;
+  }
+
+  .idioma-nivel {
+    color: var(--cv-gris-suave);
+  }
+
+  .certificaciones {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .certificaciones li {
+    display: grid;
+    gap: 0.1rem;
+    font-size: 0.82rem;
+  }
+
+  .cert-nombre {
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .cert-meta {
+    color: var(--cv-gris-suave);
+    font-size: 0.76rem;
+  }
+
+  /* ---------- Móvil: una sola columna, sidebar debajo ---------- */
+  @media (max-width: 640px) {
+    .cv-moderna {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .principal {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .lateral {
+      grid-column: 1;
+      grid-row: 2;
+      border-right: none;
+      border-top: 1px solid var(--cv-teal-linea);
+    }
+  }
+
+  /* ---------- Impresión ---------- */
+  @media print {
+    .cv-moderna {
+      font-size: 11pt;
+      line-height: 1.45;
+    }
+    .principal {
+      padding: 0 0 0 7mm;
+    }
+    /* El fondo del sidebar no va a sangre (queda dentro del margen de
+       página) y, si el navegador no imprime fondos, la línea derecha
+       y la jerarquía tipográfica mantienen el diseño legible. */
+    .lateral {
+      padding: 6mm 5mm;
+      border-radius: 2mm;
+      border-right: 1px solid var(--cv-teal-linea);
+    }
+    .cabecera h1 {
+      font-size: 21pt;
+    }
+    .rol {
+      font-size: 12pt;
+    }
+    .bloque {
+      margin-top: 6mm;
+    }
+    .bloque h2,
+    .bloque-lateral h2 {
+      font-size: 8pt;
+    }
+    .entrada h3,
+    .entrada-edu h3 {
+      font-size: 11.5pt;
+    }
+    .meta {
+      font-size: 9.5pt;
+    }
+    .contacto li,
+    .idiomas li,
+    .certificaciones li {
+      font-size: 9.5pt;
+    }
+    .etiqueta-dato {
+      font-size: 7.5pt;
+    }
+    .stack li {
+      font-size: 8.5pt;
+    }
+    .cert-meta {
+      font-size: 8.5pt;
+    }
+    .entrada,
+    .entrada-edu,
+    .bloque-lateral,
+    .cabecera {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .contacto a {
+      text-decoration: none;
+      color: var(--cv-tinta);
+    }
+  }
+</style>

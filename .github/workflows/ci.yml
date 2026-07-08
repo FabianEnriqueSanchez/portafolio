@@ -1,0 +1,33 @@
+name: CI
+
+# Verifica tipos, componentes y build en cada pull request
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar tipos y componentes (astro check)
+        run: npm run check
+
+      - name: Verificar formato (prettier)
+        run: npm run format:check
+
+      - name: Construir el sitio
+        run: npm run build

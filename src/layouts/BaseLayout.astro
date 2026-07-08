@@ -1,4 +1,6 @@
 ---
+import "@fontsource-variable/inter/index.css";
+import "@fontsource-variable/space-grotesk/index.css";
 import "../styles/global.css";
 import { perfil } from "../data/site";
 import { withBase } from "../lib/utils";
@@ -6,14 +8,47 @@ import { withBase } from "../lib/utils";
 interface Props {
   titulo?: string;
   descripcion?: string;
+  /** Evita que buscadores indexen la página (p. ej. /admin). */
+  noindex?: boolean;
 }
 
 const {
   titulo = `${perfil.nombre} — ${perfil.rol}`,
   descripcion = perfil.resumen,
+  noindex = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(withBase("og.png"), Astro.site).href;
+
+const sameAs = [
+  perfil.social.github,
+  perfil.social.linkedin,
+  perfil.social.twitter,
+].filter(Boolean);
+// El JSON se inyecta con set:html: se escapa "<" para que ningún dato editado
+// desde el admin (p. ej. un texto con "</script>") pueda romper el <head>.
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      name: perfil.nombre,
+      jobTitle: perfil.rol,
+      description: perfil.resumen,
+      email: `mailto:${perfil.email}`,
+      url: new URL(withBase("/"), Astro.site).href,
+      address: perfil.ubicacion,
+      sameAs,
+    },
+    {
+      "@type": "WebSite",
+      name: titulo,
+      url: new URL(withBase("/"), Astro.site).href,
+      inLanguage: "es",
+    },
+  ],
+}).replace(/</g, "\\u003c");
 ---
 
 <!doctype html>
@@ -23,8 +58,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{titulo}</title>
     <meta name="description" content={descripcion} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
+    <link rel="icon" href={withBase("favicon.ico")} sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <link rel="apple-touch-icon" href={withBase("apple-touch-icon.png")} />
+    <link rel="sitemap" href={withBase("sitemap-index.xml")} />
     <meta name="generator" content={Astro.generator} />
 
     <!-- Open Graph / redes sociales -->
@@ -32,23 +71,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:title" content={titulo} />
     <meta property="og:description" content={descripcion} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_CO" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
 
-    <!-- Fuente Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Datos estructurados para buscadores -->
+    <script type="application/ld+json" set:html={jsonLd} />
 
-    <!-- Evita el parpadeo de tema: se aplica antes de pintar -->
+    <!-- Marca que hay JS (gating de .reveal) y aplica el tema antes de pintar -->
     <script is:inline>
+      document.documentElement.classList.add("js");
       (function () {
         try {
           const guardado = localStorage.getItem("tema");
           const prefiere = window.matchMedia(
-            "(prefers-color-scheme: dark)"
+            "(prefers-color-scheme: dark)",
           ).matches;
           const tema = guardado || (prefiere ? "dark" : "light");
           document.documentElement.setAttribute("data-theme", tema);
@@ -73,7 +113,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
               }
             });
           },
-          { threshold: 0.12 }
+          { threshold: 0.12 },
         );
         items.forEach((el) => obs.observe(el));
       } else {

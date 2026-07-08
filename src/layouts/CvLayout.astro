@@ -1,0 +1,293 @@
+---
+// ============================================================
+//  Layout mínimo para las páginas de hoja de vida (/cv).
+//  Sin Header/Footer del sitio y SIEMPRE en tema claro:
+//  un CV se imprime sobre blanco. La barra de acciones
+//  (no imprimible) permite volver al portafolio, cambiar de
+//  plantilla y lanzar el diálogo de impresión.
+// ============================================================
+import "@fontsource-variable/inter/index.css";
+import "@fontsource-variable/space-grotesk/index.css";
+import "../styles/global.css";
+import { PLANTILLAS_CV, type PlantillaCV } from "../data/site";
+import { withBase } from "../lib/utils";
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** Evita que buscadores indexen la página (vistas previas). */
+  noindex?: boolean;
+  /** Plantilla que se está mostrando, para marcarla en el selector. */
+  plantillaActual?: PlantillaCV;
+  /** Margen de la hoja al imprimir (regla @page centralizada aquí). */
+  margenPagina?: string;
+}
+
+const {
+  titulo,
+  descripcion,
+  noindex = false,
+  plantillaActual,
+  margenPagina = "12mm",
+} = Astro.props;
+
+const NOMBRES_PLANTILLA: Record<PlantillaCV, string> = {
+  moderna: "Moderna",
+  clasica: "Clásica",
+  compacta: "Compacta",
+};
+---
+
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" href={withBase("favicon.ico")} sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <link rel="apple-touch-icon" href={withBase("apple-touch-icon.png")} />
+    <meta name="generator" content={Astro.generator} />
+    {
+      /* Única regla @page del CV. Se inyecta con set:html porque las
+        custom properties no funcionan de forma fiable dentro de @page. */
+    }
+    <Fragment
+      set:html={"<style>@media print{@page{size:A4;margin:" +
+        margenPagina +
+        "}}</style>"}
+    />
+  </head>
+  <body>
+    <a href="#contenido" class="skip-link no-print">Saltar al contenido</a>
+
+    <header class="cv-acciones no-print">
+      <div class="acciones-inner">
+        <a class="volver" href={withBase("/")}>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M19 12H5M11 18l-6-6 6-6"></path>
+          </svg>
+          Volver al portafolio
+        </a>
+
+        <nav class="selector" aria-label="Plantillas de hoja de vida">
+          <span class="selector-etiqueta" aria-hidden="true">Plantilla</span>
+          {
+            PLANTILLAS_CV.map((p) => (
+              <a
+                href={withBase(`cv/${p}`)}
+                class="selector-link"
+                aria-current={p === plantillaActual ? "page" : undefined}
+              >
+                {NOMBRES_PLANTILLA[p]}
+              </a>
+            ))
+          }
+        </nav>
+
+        <div class="descarga">
+          <button id="descargar-pdf" class="btn btn-primary" type="button">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12M7 10l5 5 5-5M4 19h16"></path>
+            </svg>
+            Descargar PDF
+          </button>
+          <p class="hint">
+            Se abrirá el diálogo de impresión: elige «Guardar como PDF».
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="cv-escenario" tabindex="-1">
+      <div class="cv-hoja">
+        <slot />
+      </div>
+    </main>
+
+    <script>
+      const boton = document.getElementById("descargar-pdf");
+      boton?.addEventListener("click", () => window.print());
+    </script>
+  </body>
+</html>
+
+<style>
+  body {
+    background: var(--bg-soft);
+  }
+
+  /* ---------- Barra de acciones (solo pantalla) ---------- */
+  .cv-acciones {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .acciones-inner {
+    max-width: 1080px;
+    margin-inline: auto;
+    padding: 0.65rem clamp(1rem, 4vw, 2.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding-inline: 0.25rem;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--muted);
+    transition: color var(--dur) var(--ease);
+  }
+
+  .volver:hover {
+    color: var(--accent);
+  }
+
+  .selector {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.2rem;
+    max-width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .selector-etiqueta {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding-inline: 0.55rem 0.35rem;
+  }
+
+  .selector-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0.25rem 0.8rem;
+    border-radius: 6px;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--muted);
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .selector-link:hover {
+    color: var(--text);
+    background: var(--bg-soft);
+  }
+
+  .selector-link[aria-current="page"] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  .descarga {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .hint {
+    font-size: 0.72rem;
+    color: var(--faint);
+    line-height: 1.35;
+    text-align: right;
+    max-width: 34ch;
+  }
+
+  /* ---------- Escenario: la hoja centrada ---------- */
+  .cv-escenario {
+    padding: clamp(1.25rem, 4vw, 2.75rem) clamp(0.6rem, 3vw, 2rem)
+      clamp(3rem, 7vw, 5rem);
+  }
+
+  .cv-hoja {
+    max-width: 800px;
+    margin-inline: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  @media (max-width: 560px) {
+    .acciones-inner {
+      justify-content: center;
+    }
+    .descarga {
+      align-items: center;
+    }
+    .hint {
+      text-align: center;
+    }
+  }
+
+  /* ---------- Impresión ---------- */
+  @media print {
+    body {
+      background: #fff;
+    }
+    .cv-escenario {
+      padding: 0;
+    }
+    .cv-hoja {
+      max-width: none;
+      margin: 0;
+      background: #fff;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+    }
+  }
+</style>
+
+<style is:global>
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
+</style>

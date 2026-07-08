@@ -7,12 +7,6 @@ on:
   # Permite ejecutarlo manualmente desde la pestaña Actions
   workflow_dispatch:
 
-# Permisos necesarios para publicar en GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 # Evita despliegues simultáneos; deja terminar el que está en curso
 concurrency:
   group: pages
@@ -21,18 +15,38 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Instalar, construir y subir artefacto de Astro
-        uses: withastro/action@v3
-        # Esta acción instala dependencias, ejecuta `astro build`
-        # y sube el directorio `dist/` como artefacto de Pages.
+      - name: Configurar Node 22 (requerido por Astro 6)
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar tipos y componentes (astro check)
+        run: npm run check
+
+      - name: Construir el sitio
+        run: npm run build
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

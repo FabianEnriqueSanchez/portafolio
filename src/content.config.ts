@@ -8,7 +8,6 @@ const docs = defineCollection({
   schema: z.object({
     titulo: z.string(),
     descripcion: z.string(),
-    proyecto: z.string().optional(),
     actualizado: z.string().optional(),
     orden: z.number().default(99),
   }),

@@ -1,0 +1,2001 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { withBase } from "../../lib/utils";
+
+// Secciones del formulario: el <details> es estático (conserva su estado
+// abierto/cerrado) y el cuerpo lo rellena el script según el estado.
+const secciones = [
+  {
+    id: "perfil",
+    titulo: "Perfil",
+    descripcion: "Datos de contacto y presentación principal.",
+  },
+  {
+    id: "sobreMi",
+    titulo: "Sobre mí",
+    descripcion: "Párrafos de presentación y stack tecnológico.",
+  },
+  {
+    id: "proyectos",
+    titulo: "Proyectos",
+    descripcion: "Tarjetas de proyectos: orden, etiquetas y enlaces.",
+  },
+  {
+    id: "experiencia",
+    titulo: "Experiencia",
+    descripcion: "Trayectoria laboral con sus puntos destacados.",
+  },
+  {
+    id: "educacion",
+    titulo: "Formación",
+    descripcion: "Estudios y programas académicos.",
+  },
+  {
+    id: "certificaciones",
+    titulo: "Certificaciones",
+    descripcion: "Cursos y certificados con entidad y año.",
+  },
+  {
+    id: "idiomas",
+    titulo: "Idiomas",
+    descripcion: "Idiomas y nivel de dominio.",
+  },
+  {
+    id: "navegacion",
+    titulo: "Navegación",
+    descripcion: "Enlaces del menú principal del sitio.",
+  },
+  {
+    id: "cv",
+    titulo: "Hoja de vida",
+    descripcion: "Plantilla, archivo estático y perfil profesional.",
+  },
+];
+---
+
+<BaseLayout
+  titulo="Administración del portafolio"
+  descripcion="Panel privado para editar el contenido del portafolio."
+  noindex
+>
+  <div class="pagina-admin">
+    <header class="admin-topbar">
+      <div class="admin-wrap topbar-inner">
+        <h1 class="topbar-titulo">Administración del portafolio</h1>
+        <span id="badge-cambios" class="badge-cambios" hidden
+          >Cambios sin guardar</span
+        >
+        <a class="btn btn-ghost btn-compacto" href={withBase("/")}>Ver sitio</a>
+      </div>
+    </header>
+
+    <main id="contenido" class="admin-main" tabindex="-1">
+      <div class="admin-wrap">
+        <p class="aviso-publico">
+          Cualquiera puede ver esta página, pero sin un token válido nadie puede
+          modificar el contenido. El token nunca sale de tu navegador ni se
+          incluye en los datos guardados.
+        </p>
+
+        <noscript>
+          <p class="aviso-publico">
+            Este panel necesita JavaScript para funcionar. Actívalo y recarga la
+            página.
+          </p>
+        </noscript>
+
+        <section class="tarjeta tarjeta-token" aria-labelledby="titulo-token">
+          <h2 id="titulo-token" class="titulo-token">Acceso</h2>
+          <p class="ayuda-token">
+            Pega un token <em>fine-grained</em> de GitHub con permiso
+            <strong>Contents: Read and write</strong> únicamente sobre este repositorio.
+          </p>
+          <div class="fila-token">
+            <div class="campo campo-crece">
+              <label class="campo-etiqueta" for="input-token"
+                >Token de GitHub</label
+              >
+              <input
+                id="input-token"
+                type="password"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="github_pat_…"
+              />
+            </div>
+            <button id="btn-olvidar" type="button" class="btn btn-ghost"
+              >Olvidar token</button
+            >
+          </div>
+          <label class="check">
+            <input id="check-recordar" type="checkbox" />
+            <span>Recordar en este navegador</span>
+          </label>
+          <p class="campo-ayuda">
+            Si no lo marcas, el token se guarda solo para esta pestaña y se
+            borra al cerrarla.
+          </p>
+          <details class="instrucciones">
+            <summary>¿Cómo creo el token?</summary>
+            <ol>
+              <li>
+                En GitHub, entra en <strong
+                  >Settings → Developer settings → Personal access tokens →
+                  Fine-grained tokens</strong
+                > y pulsa
+                <strong>Generate new token</strong>.
+              </li>
+              <li>
+                En <strong>Repository access</strong> elige
+                <strong>Only select repositories</strong> y selecciona únicamente
+                este repositorio.
+              </li>
+              <li>
+                En <strong>Permissions → Repository permissions</strong> concede
+                <strong>Contents: Read and write</strong>. Nada más.
+              </li>
+              <li>
+                Genera el token y pégalo aquí. GitHub solo lo muestra una vez.
+              </li>
+            </ol>
+          </details>
+        </section>
+
+        <div class="acciones-datos">
+          <button id="btn-recargar" type="button" class="btn btn-ghost"
+            >Recargar desde GitHub</button
+          >
+          <button id="btn-descargar" type="button" class="btn btn-ghost"
+            >Descargar site.json</button
+          >
+        </div>
+
+        <form id="form-admin" novalidate>
+          {
+            secciones.map((s) => (
+              <details class="tarjeta seccion" id={`sec-${s.id}`} open>
+                <summary>
+                  <span class="seccion-nombre">{s.titulo}</span>
+                  <span class="seccion-desc">{s.descripcion}</span>
+                  <svg
+                    class="chevron"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <h2 class="sr-only">{s.titulo}</h2>
+                <div class="seccion-cuerpo" data-seccion={s.id} />
+              </details>
+            ))
+          }
+        </form>
+      </div>
+    </main>
+
+    <div class="savebar">
+      <div class="admin-wrap">
+        <div id="estado" class="estado" aria-live="polite"></div>
+        <div class="savebar-inner">
+          <p id="savebar-estado" class="savebar-estado">
+            Sin cambios pendientes
+          </p>
+          <button id="btn-guardar" type="button" class="btn btn-primary">
+            Guardar y publicar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<!-- Global (con prefijo .pagina-admin): el formulario se genera por JS y los
+     nodos creados en tiempo de ejecución no reciben el scope de Astro. -->
+<style is:global>
+  .pagina-admin {
+    /* Rojo de error puntual (no existe token de peligro en la paleta) */
+    --error: #b42318;
+    --error-bg: #fdeceb;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  [data-theme="dark"] .pagina-admin {
+    --error: #f5a49c;
+    --error-bg: #38201d;
+  }
+
+  .pagina-admin .admin-wrap {
+    width: 100%;
+    max-width: 880px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 2rem);
+  }
+
+  /* ---------- Barra superior ---------- */
+  .pagina-admin .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pagina-admin .topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding-block: 0.5rem;
+  }
+
+  .pagina-admin .topbar-titulo {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.65;
+    margin-right: auto;
+  }
+
+  /* Solo para lectores de pantalla (encabezados de sección) */
+  .pagina-admin .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .pagina-admin .badge-cambios {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-xs);
+    font-weight: 560;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+  }
+
+  .pagina-admin .badge-cambios::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .pagina-admin .badge-cambios[hidden] {
+    display: none;
+  }
+
+  .pagina-admin .btn-compacto {
+    padding: 0.5rem 0.9rem;
+  }
+
+  /* ---------- Contenido ---------- */
+  .pagina-admin .admin-main {
+    flex: 1;
+    padding-block: 1.5rem 3rem;
+  }
+
+  .pagina-admin .aviso-publico {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .pagina-admin .tarjeta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    margin-top: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- Tarjeta de acceso (token) ---------- */
+  .pagina-admin .titulo-token {
+    font-size: var(--text-lg);
+  }
+
+  .pagina-admin .ayuda-token {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    margin-top: 0.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .pagina-admin .fila-token {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .pagina-admin .campo-crece {
+    flex: 1 1 240px;
+  }
+
+  .pagina-admin .instrucciones {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.9rem;
+    font-size: var(--text-sm);
+  }
+
+  .pagina-admin .instrucciones summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 560;
+    border-radius: 4px;
+    width: fit-content;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .pagina-admin .instrucciones ol {
+    margin: 0.8rem 0 0.2rem;
+    padding-left: 1.3rem;
+    color: var(--muted);
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .pagina-admin .acciones-datos {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+
+  /* ---------- Secciones plegables ---------- */
+  .pagina-admin .seccion > summary {
+    list-style: none;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 1rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .pagina-admin .seccion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pagina-admin .seccion-nombre {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .pagina-admin .seccion-desc {
+    grid-column: 1;
+    font-size: var(--text-sm);
+    color: var(--faint);
+    margin-top: 0.15rem;
+  }
+
+  .pagina-admin .seccion .chevron {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    color: var(--muted);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .pagina-admin .seccion[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .pagina-admin .seccion-cuerpo {
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1.25rem;
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  /* ---------- Campos ---------- */
+  .pagina-admin .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .pagina-admin .campo-etiqueta {
+    font-size: var(--text-sm);
+    font-weight: 560;
+    color: var(--text);
+  }
+
+  .pagina-admin .campo-ayuda {
+    font-size: var(--text-xs);
+    color: var(--faint);
+    margin: 0;
+  }
+
+  .pagina-admin input.campo-invalido,
+  .pagina-admin textarea.campo-invalido {
+    border-color: var(--error);
+  }
+
+  .pagina-admin .campo-error {
+    font-size: var(--text-xs);
+    color: var(--error);
+    margin: 0;
+  }
+
+  .pagina-admin input[type="text"],
+  .pagina-admin input[type="email"],
+  .pagina-admin input[type="tel"],
+  .pagina-admin input[type="url"],
+  .pagina-admin input[type="password"],
+  .pagina-admin textarea,
+  .pagina-admin select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.55rem 0.8rem;
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .pagina-admin textarea {
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .pagina-admin input:focus-visible,
+  .pagina-admin textarea:focus-visible,
+  .pagina-admin select:focus-visible {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .pagina-admin ::placeholder {
+    color: var(--faint);
+    opacity: 1;
+  }
+
+  .pagina-admin .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 40px;
+    font-size: var(--text-sm);
+    cursor: pointer;
+    width: fit-content;
+  }
+
+  .pagina-admin .check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .pagina-admin .rejilla-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .pagina-admin .subtitulo {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--font-mono);
+    margin: 0.4rem 0 0;
+  }
+
+  /* ---------- Elementos de lista (proyectos, experiencia…) ---------- */
+  .pagina-admin .item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    padding: 1rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .pagina-admin .item-barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .pagina-admin .item-titulo {
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--muted);
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .pagina-admin .item-acciones {
+    display: flex;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+
+  .pagina-admin .btn-icono {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      border-color var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .pagina-admin .btn-icono:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .pagina-admin .btn-icono:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .pagina-admin .vacio {
+    font-size: var(--text-sm);
+    color: var(--faint);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-align: center;
+    margin: 0;
+  }
+
+  .pagina-admin .btn-anadir {
+    justify-self: start;
+  }
+
+  .pagina-admin .fila-punto {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  /* ---------- Chips ---------- */
+  .pagina-admin .chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0;
+    margin: 0.1rem 0;
+  }
+
+  .pagina-admin .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.25rem 0.3rem 0.25rem 0.8rem;
+    font-size: var(--text-sm);
+  }
+
+  .pagina-admin .chip-quitar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  /* Zona táctil ampliada a ~42px sin agrandar el chip */
+  .pagina-admin .chip-quitar::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
+
+  .pagina-admin .chip-quitar:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  .pagina-admin .chips-vacio {
+    font-size: var(--text-sm);
+    color: var(--faint);
+  }
+
+  .pagina-admin .fila-anadir {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pagina-admin .fila-anadir input {
+    flex: 1 1 200px;
+    width: auto;
+  }
+
+  .pagina-admin .cv-previas {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    margin: -0.4rem 0 0;
+  }
+
+  .pagina-admin .cv-previas a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---------- Barra inferior fija ---------- */
+  .pagina-admin .savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    padding-block: 0.7rem;
+  }
+
+  .pagina-admin .savebar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pagina-admin .savebar-estado {
+    font-size: var(--text-sm);
+    color: var(--faint);
+    margin: 0;
+  }
+
+  .pagina-admin .savebar-estado[data-estado="sucio"] {
+    color: var(--accent);
+    font-weight: 560;
+  }
+
+  .pagina-admin .estado:not(:empty) {
+    margin-bottom: 0.6rem;
+  }
+
+  .pagina-admin .mensaje {
+    font-size: var(--text-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid;
+    padding: 0.6rem 0.9rem;
+    margin: 0;
+  }
+
+  .pagina-admin .mensaje a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 560;
+  }
+
+  .pagina-admin .mensaje-exito {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    color: var(--text);
+  }
+
+  .pagina-admin .mensaje-error {
+    background: var(--error-bg);
+    border-color: color-mix(in srgb, var(--error) 45%, transparent);
+    color: var(--error);
+  }
+
+  .pagina-admin .mensaje-info {
+    background: var(--bg-soft);
+    border-color: var(--border-strong);
+    color: var(--muted);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 560px) {
+    .pagina-admin .rejilla-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .pagina-admin .topbar-titulo {
+      font-size: var(--text-sm);
+    }
+
+    .pagina-admin .savebar-inner .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import datosIniciales from "../../data/site.json";
+  import { withBase } from "../../lib/utils";
+
+  /* ============================================================
+     Tipos espejo de src/data/site.json
+     ============================================================ */
+  type Proyecto = {
+    slug: string;
+    titulo: string;
+    descripcion: string;
+    tags: string[];
+    demo: string;
+    repo: string;
+    doc: string;
+    año: string;
+    destacado: boolean;
+  };
+  type Experiencia = {
+    puesto: string;
+    empresa: string;
+    periodo: string;
+    puntos: string[];
+  };
+  type DatosSitio = {
+    perfil: {
+      nombre: string;
+      rol: string;
+      titular: string;
+      resumen: string;
+      ubicacion: string;
+      email: string;
+      telefono: string;
+      social: { github: string; linkedin: string; twitter: string };
+    };
+    sobreMi: { parrafos: string[]; stack: string[] };
+    proyectos: Proyecto[];
+    experiencia: Experiencia[];
+    educacion: Record<string, string>[];
+    certificaciones: Record<string, string>[];
+    idiomas: Record<string, string>[];
+    navegacion: Record<string, string>[];
+    cv: {
+      plantilla: string;
+      archivoEstatico: string;
+      perfilProfesional: string;
+    };
+    admin: { owner: string; repo: string; branch: string; rutaDatos: string };
+  };
+
+  /* Estado: espejo mutable de site.json (clonado para no tocar el módulo) */
+  let estado: DatosSitio = JSON.parse(JSON.stringify(datosIniciales));
+
+  /* Base horneada en el build, serializada igual que serializar(): permite
+     detectar en la primera publicación si el remoto ya cambió. */
+  const baseHorneada = JSON.stringify(datosIniciales, null, 2) + "\n";
+
+  /* sha del site.json remoto sobre el que se está editando: se fija al cargar
+     desde GitHub (arranque con token o «Recargar») y tras cada PUT exitoso.
+     Con null (editando sobre el JSON del build) el guardado verifica antes. */
+  let shaActual: string | null = null;
+
+  /* ============================================================
+     Utilidades DOM
+     ============================================================ */
+  function el<K extends keyof HTMLElementTagNameMap>(
+    etiqueta: K,
+    clase = "",
+    texto?: string,
+  ): HTMLElementTagNameMap[K] {
+    const nodo = document.createElement(etiqueta);
+    if (clase) nodo.className = clase;
+    if (texto !== undefined) nodo.textContent = texto;
+    return nodo;
+  }
+
+  function qs<T extends HTMLElement>(selector: string): T {
+    const nodo = document.querySelector<T>(selector);
+    if (!nodo) throw new Error(`Falta el elemento ${selector}`);
+    return nodo;
+  }
+
+  function cont(seccion: string): HTMLElement {
+    return qs<HTMLElement>(`[data-seccion="${seccion}"]`);
+  }
+
+  const inputToken = qs<HTMLInputElement>("#input-token");
+  const checkRecordar = qs<HTMLInputElement>("#check-recordar");
+  const btnOlvidar = qs<HTMLButtonElement>("#btn-olvidar");
+  const btnRecargar = qs<HTMLButtonElement>("#btn-recargar");
+  const btnDescargar = qs<HTMLButtonElement>("#btn-descargar");
+  const btnGuardar = qs<HTMLButtonElement>("#btn-guardar");
+  const badgeCambios = qs<HTMLElement>("#badge-cambios");
+  const savebarEstado = qs<HTMLElement>("#savebar-estado");
+  const zonaEstado = qs<HTMLElement>("#estado");
+  const formulario = qs<HTMLFormElement>("#form-admin");
+
+  /* ============================================================
+     Mensajes de estado (aria-live) y cambios sin guardar
+     ============================================================ */
+  function anunciar(
+    tipo: "exito" | "error" | "info",
+    contenido: Array<Node | string>,
+  ) {
+    const caja = el("p", `mensaje mensaje-${tipo}`);
+    caja.append(...contenido);
+    zonaEstado.replaceChildren(caja);
+  }
+
+  function limpiarEstado() {
+    zonaEstado.replaceChildren();
+  }
+
+  let hayCambios = false;
+
+  /* Contador de ediciones: detecta texto tecleado mientras un PUT está en
+     vuelo para no marcarlo como guardado. */
+  let version = 0;
+
+  function marcarCambios() {
+    version++;
+    if (hayCambios) return;
+    hayCambios = true;
+    badgeCambios.hidden = false;
+    savebarEstado.textContent = "Cambios sin guardar";
+    savebarEstado.dataset.estado = "sucio";
+  }
+
+  function limpiarCambios(texto: string) {
+    hayCambios = false;
+    badgeCambios.hidden = true;
+    savebarEstado.textContent = texto;
+    delete savebarEstado.dataset.estado;
+  }
+
+  window.addEventListener("beforeunload", (evento) => {
+    if (!hayCambios) return;
+    evento.preventDefault();
+    evento.returnValue = "";
+  });
+
+  /* ============================================================
+     Token: sessionStorage por defecto; localStorage si "recordar"
+     ============================================================ */
+  const CLAVE_TOKEN = "portafolio-admin-token";
+
+  function inicializarToken() {
+    try {
+      const enLocal = localStorage.getItem(CLAVE_TOKEN);
+      const enSesion = sessionStorage.getItem(CLAVE_TOKEN);
+      inputToken.value = enLocal ?? enSesion ?? "";
+      checkRecordar.checked = enLocal !== null;
+    } catch {
+      /* almacenamiento no disponible (modo privado estricto) */
+    }
+  }
+
+  function persistirToken() {
+    const token = inputToken.value.trim();
+    try {
+      sessionStorage.removeItem(CLAVE_TOKEN);
+      localStorage.removeItem(CLAVE_TOKEN);
+      if (!token) return;
+      if (checkRecordar.checked) localStorage.setItem(CLAVE_TOKEN, token);
+      else sessionStorage.setItem(CLAVE_TOKEN, token);
+    } catch {
+      /* sin almacenamiento: el token vive solo en el campo */
+    }
+  }
+
+  inputToken.addEventListener("input", persistirToken);
+  checkRecordar.addEventListener("change", persistirToken);
+  btnOlvidar.addEventListener("click", () => {
+    inputToken.value = "";
+    checkRecordar.checked = false;
+    persistirToken();
+    anunciar("info", ["Token olvidado en este navegador."]);
+    inputToken.focus();
+  });
+
+  /* ============================================================
+     Base64 ⇄ UTF-8 (atob/btoa a secas corrompen los caracteres
+     multibyte: se pasa siempre por TextEncoder/TextDecoder)
+     ============================================================ */
+  function base64AUtf8(b64: string): string {
+    const binario = atob(b64.replace(/\s/g, ""));
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  function utf8ABase64(texto: string): string {
+    const bytes = new TextEncoder().encode(texto);
+    let binario = "";
+    for (let i = 0; i < bytes.length; i++)
+      binario += String.fromCharCode(bytes[i]);
+    return btoa(binario);
+  }
+
+  /* ============================================================
+     API de contenidos de GitHub
+     ============================================================ */
+  function urlContenidos(): string {
+    const a = estado.admin;
+    return `https://api.github.com/repos/${a.owner}/${a.repo}/contents/${a.rutaDatos}`;
+  }
+
+  function cabeceras(token: string): Record<string, string> {
+    return {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+  }
+
+  function mensajeErrorApi(codigo: number): string {
+    if (codigo === 401)
+      return "Token inválido o caducado. Genera uno nuevo y vuelve a pegarlo.";
+    if (codigo === 403)
+      return "El token no tiene permisos suficientes: necesita «Contents: Read and write» sobre este repositorio.";
+    if (codigo === 404)
+      return "No se encontró el repositorio o la ruta del archivo. Revisa también que el token tenga acceso a este repositorio.";
+    if (codigo === 409)
+      return "Conflicto: el archivo cambió en GitHub mientras editabas. Pulsa «Recargar desde GitHub» y aplica de nuevo tus cambios.";
+    if (codigo === 422)
+      return "GitHub rechazó la petición. Pulsa «Recargar desde GitHub» e inténtalo otra vez.";
+    return `Error de la API de GitHub (código ${codigo}).`;
+  }
+
+  function mensajeDeError(error: unknown): string {
+    if (error instanceof TypeError)
+      return "Error de red: no se pudo contactar con la API de GitHub. Revisa tu conexión.";
+    if (error instanceof Error && error.message) return error.message;
+    return "Ocurrió un error inesperado.";
+  }
+
+  async function obtenerArchivo(
+    token: string,
+  ): Promise<{ contenido: string; sha: string }> {
+    const respuesta = await fetch(
+      `${urlContenidos()}?ref=${estado.admin.branch}`,
+      {
+        headers: cabeceras(token),
+        cache: "no-store",
+      },
+    );
+    if (!respuesta.ok) throw new Error(mensajeErrorApi(respuesta.status));
+    const json = (await respuesta.json()) as { content: string; sha: string };
+    return { contenido: base64AUtf8(json.content), sha: json.sha };
+  }
+
+  /* Mismo orden de claves que el original: el estado se construyó desde el
+     JSON y las altas usan objetos con el orden canónico. */
+  function serializar(): string {
+    return JSON.stringify(estado, null, 2) + "\n";
+  }
+
+  /* ============================================================
+     Validación mínima antes de publicar
+     ============================================================ */
+  type ProblemaValidacion = { mensaje: string; selector: string };
+
+  function validar(): ProblemaValidacion[] {
+    const problemas: ProblemaValidacion[] = [];
+    if (!estado.perfil.nombre.trim()) {
+      problemas.push({
+        mensaje: "El nombre no puede quedar vacío.",
+        selector: '[data-campo="nombre"]',
+      });
+    }
+    const email = estado.perfil.email.trim();
+    if (!email) {
+      problemas.push({
+        mensaje: "El email no puede quedar vacío.",
+        selector: '[data-campo="email"]',
+      });
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      problemas.push({
+        mensaje: "El email no tiene un formato válido.",
+        selector: '[data-campo="email"]',
+      });
+    }
+    return problemas;
+  }
+
+  /* Marca el campo inválido (aria-invalid + mensaje vinculado con
+     aria-describedby + borde de error) y lo limpia al corregir. */
+  function marcarCampoInvalido(campo: HTMLInputElement, mensaje: string) {
+    const idError = `${campo.id}-error`;
+    campo.setAttribute("aria-invalid", "true");
+    campo.setAttribute("aria-describedby", idError);
+    campo.classList.add("campo-invalido");
+    let aviso = document.getElementById(idError);
+    if (!aviso) {
+      aviso = el("p", "campo-error");
+      aviso.id = idError;
+      campo.insertAdjacentElement("afterend", aviso);
+      campo.addEventListener("input", () => limpiarCampoInvalido(campo), {
+        once: true,
+      });
+    }
+    aviso.textContent = mensaje;
+  }
+
+  function limpiarCampoInvalido(campo: HTMLInputElement) {
+    campo.removeAttribute("aria-invalid");
+    campo.removeAttribute("aria-describedby");
+    campo.classList.remove("campo-invalido");
+    document.getElementById(`${campo.id}-error`)?.remove();
+  }
+
+  function limpiarCamposInvalidos() {
+    formulario
+      .querySelectorAll<HTMLInputElement>('[aria-invalid="true"]')
+      .forEach((campo) => limpiarCampoInvalido(campo));
+  }
+
+  /* ============================================================
+     Acciones: guardar, recargar, descargar
+     ============================================================ */
+  async function guardar() {
+    limpiarEstado();
+    const token = inputToken.value.trim();
+    if (!token) {
+      anunciar("error", [
+        "Pega tu token de GitHub en la sección «Acceso» para poder publicar.",
+      ]);
+      inputToken.focus();
+      return;
+    }
+    limpiarCamposInvalidos();
+    const problemas = validar();
+    if (problemas.length) {
+      anunciar("error", [problemas.map((p) => p.mensaje).join(" ")]);
+      const seccionPerfil =
+        document.querySelector<HTMLDetailsElement>("#sec-perfil");
+      if (seccionPerfil) seccionPerfil.open = true;
+      problemas.forEach((p) => {
+        const campo = document.querySelector<HTMLInputElement>(p.selector);
+        if (campo) marcarCampoInvalido(campo, p.mensaje);
+      });
+      document.querySelector<HTMLInputElement>(problemas[0].selector)?.focus();
+      return;
+    }
+    // Exclusión mutua con recargar() y referencia para restaurar el foco
+    const focoPrevio = document.activeElement;
+    btnGuardar.disabled = true;
+    btnRecargar.disabled = true;
+    const textoBoton = btnGuardar.textContent;
+    btnGuardar.textContent = "Publicando…";
+    try {
+      let sha = shaActual;
+      if (sha === null) {
+        // Primera publicación editando sobre el JSON del build: solo se puede
+        // publicar si el remoto sigue idéntico a esa base horneada.
+        const remoto = await obtenerArchivo(token);
+        if (remoto.contenido !== baseHorneada) {
+          throw new Error(
+            "El archivo en GitHub es más reciente que los datos de este panel. Pulsa «Recargar desde GitHub» y aplica de nuevo tus cambios.",
+          );
+        }
+        sha = remoto.sha;
+      }
+      const versionEnviada = version;
+      const respuesta = await fetch(urlContenidos(), {
+        method: "PUT",
+        headers: { ...cabeceras(token), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "contenido: actualizar datos desde el admin",
+          content: utf8ABase64(serializar()),
+          sha,
+          branch: estado.admin.branch,
+        }),
+      });
+      if (!respuesta.ok) throw new Error(mensajeErrorApi(respuesta.status));
+      const publicado = (await respuesta.json()) as {
+        content: { sha: string };
+      };
+      shaActual = publicado.content.sha;
+      if (version === versionEnviada) {
+        limpiarCambios("Todo guardado");
+      } else {
+        // Hubo ediciones mientras el PUT estaba en vuelo: siguen pendientes
+        savebarEstado.textContent = "Cambios sin guardar";
+        savebarEstado.dataset.estado = "sucio";
+        badgeCambios.hidden = false;
+      }
+      const enlace = el("a", "", "ver el progreso en GitHub Actions");
+      enlace.href = `https://github.com/${estado.admin.owner}/${estado.admin.repo}/actions`;
+      enlace.target = "_blank";
+      enlace.rel = "noopener";
+      anunciar("exito", [
+        "Cambios publicados. GitHub Actions reconstruirá el sitio en unos 2 minutos: ",
+        enlace,
+        ".",
+      ]);
+    } catch (error) {
+      anunciar("error", [mensajeDeError(error)]);
+    } finally {
+      btnGuardar.disabled = false;
+      btnRecargar.disabled = false;
+      btnGuardar.textContent = textoBoton;
+      // Deshabilitar el botón enfocado tira el foco al <body>: restaurarlo
+      if (focoPrevio === btnGuardar && document.activeElement === document.body)
+        btnGuardar.focus();
+    }
+  }
+
+  async function recargar() {
+    limpiarEstado();
+    const token = inputToken.value.trim();
+    if (!token) {
+      anunciar("error", [
+        "Pega tu token para leer la última versión desde la API de GitHub.",
+      ]);
+      inputToken.focus();
+      return;
+    }
+    if (
+      hayCambios &&
+      !window.confirm(
+        "Hay cambios sin guardar que se perderán. ¿Recargar igualmente?",
+      )
+    ) {
+      return;
+    }
+    // Exclusión mutua con guardar() y referencia para restaurar el foco
+    const focoPrevio = document.activeElement;
+    btnRecargar.disabled = true;
+    btnGuardar.disabled = true;
+    const textoBoton = btnRecargar.textContent;
+    btnRecargar.textContent = "Recargando…";
+    try {
+      const { contenido, sha } = await obtenerArchivo(token);
+      estado = JSON.parse(contenido) as DatosSitio;
+      shaActual = sha;
+      limpiarCambios("Sin cambios pendientes");
+      pintarTodo();
+      anunciar("exito", [
+        `Datos recargados desde GitHub (rama ${estado.admin.branch}).`,
+      ]);
+    } catch (error) {
+      anunciar("error", [mensajeDeError(error)]);
+    } finally {
+      btnRecargar.disabled = false;
+      btnGuardar.disabled = false;
+      btnRecargar.textContent = textoBoton;
+      // Deshabilitar el botón enfocado tira el foco al <body>: restaurarlo
+      if (
+        focoPrevio === btnRecargar &&
+        document.activeElement === document.body
+      )
+        btnRecargar.focus();
+    }
+  }
+
+  function descargar() {
+    const blob = new Blob([serializar()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = "site.json";
+    document.body.append(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    anunciar("info", ["Copia de seguridad descargada como site.json."]);
+  }
+
+  btnGuardar.addEventListener("click", () => void guardar());
+  btnRecargar.addEventListener("click", () => void recargar());
+  btnDescargar.addEventListener("click", descargar);
+  formulario.addEventListener("submit", (evento) => evento.preventDefault());
+
+  /* ============================================================
+     Fábricas de campos (el formulario se genera desde el estado)
+     ============================================================ */
+  let contadorId = 0;
+
+  type OpcionesCampo = {
+    tipo?: string;
+    ayuda?: string;
+    dataCampo?: string;
+    requerido?: boolean;
+  };
+
+  function campoTexto(
+    etiqueta: string,
+    valor: string,
+    alCambiar: (v: string) => void,
+    opciones: OpcionesCampo = {},
+  ): HTMLElement {
+    const envoltura = el("div", "campo");
+    const id = `campo-${++contadorId}`;
+    const label = el(
+      "label",
+      "campo-etiqueta",
+      opciones.requerido ? `${etiqueta} *` : etiqueta,
+    );
+    label.htmlFor = id;
+    const input = el("input");
+    input.type = opciones.tipo ?? "text";
+    input.id = id;
+    input.value = valor;
+    if (opciones.requerido) input.required = true;
+    if (opciones.dataCampo) input.dataset.campo = opciones.dataCampo;
+    input.addEventListener("input", () => {
+      alCambiar(input.value);
+      marcarCambios();
+    });
+    envoltura.append(label, input);
+    if (opciones.ayuda)
+      envoltura.append(el("p", "campo-ayuda", opciones.ayuda));
+    return envoltura;
+  }
+
+  function campoArea(
+    etiqueta: string,
+    valor: string,
+    alCambiar: (v: string) => void,
+    filas = 3,
+    ayuda?: string,
+  ): HTMLElement {
+    const envoltura = el("div", "campo");
+    const id = `campo-${++contadorId}`;
+    const label = el("label", "campo-etiqueta", etiqueta);
+    label.htmlFor = id;
+    const area = el("textarea");
+    area.id = id;
+    area.rows = filas;
+    area.value = valor;
+    area.addEventListener("input", () => {
+      alCambiar(area.value);
+      marcarCambios();
+    });
+    envoltura.append(label, area);
+    if (ayuda) envoltura.append(el("p", "campo-ayuda", ayuda));
+    return envoltura;
+  }
+
+  function campoSelect(
+    etiqueta: string,
+    valor: string,
+    opciones: Array<[string, string]>,
+    alCambiar: (v: string) => void,
+  ): HTMLElement {
+    const envoltura = el("div", "campo");
+    const id = `campo-${++contadorId}`;
+    const label = el("label", "campo-etiqueta", etiqueta);
+    label.htmlFor = id;
+    const select = el("select");
+    select.id = id;
+    opciones.forEach(([v, texto]) => {
+      const opcion = el("option", "", texto);
+      opcion.value = v;
+      opcion.selected = v === valor;
+      select.append(opcion);
+    });
+    select.addEventListener("change", () => {
+      alCambiar(select.value);
+      marcarCambios();
+    });
+    envoltura.append(label, select);
+    return envoltura;
+  }
+
+  function campoCheck(
+    etiqueta: string,
+    valor: boolean,
+    alCambiar: (v: boolean) => void,
+  ): HTMLElement {
+    const label = el("label", "check");
+    const input = el("input");
+    input.type = "checkbox";
+    input.checked = valor;
+    input.addEventListener("change", () => {
+      alCambiar(input.checked);
+      marcarCambios();
+    });
+    label.append(input, el("span", "", etiqueta));
+    return label;
+  }
+
+  function estadoVacio(texto: string): HTMLElement {
+    return el("p", "vacio", texto);
+  }
+
+  function botonAnadir(texto: string, alPulsar: () => void): HTMLButtonElement {
+    const boton = el("button", "btn btn-ghost btn-anadir", `+ ${texto}`);
+    boton.type = "button";
+    boton.addEventListener("click", alPulsar);
+    return boton;
+  }
+
+  /* Editor de chips (stack, etiquetas de proyecto) */
+  function editorChips(
+    etiqueta: string,
+    lista: string[],
+    textoAgregar: string,
+  ): HTMLElement {
+    const envoltura = el("div", "campo");
+    const idTitulo = `chips-${++contadorId}`;
+    const titulo = el("p", "campo-etiqueta", etiqueta);
+    titulo.id = idTitulo;
+    const ul = el("ul", "chips");
+    ul.setAttribute("aria-labelledby", idTitulo);
+
+    const input = el("input");
+    input.type = "text";
+    input.placeholder = `${textoAgregar}…`;
+    input.setAttribute("aria-label", `${textoAgregar} (${etiqueta})`);
+
+    const pintarChips = () => {
+      const nodos = lista.map((valor, i) => {
+        const li = el("li", "chip");
+        li.append(el("span", "", valor));
+        const quitar = el("button", "chip-quitar", "×");
+        quitar.type = "button";
+        quitar.setAttribute("aria-label", `Quitar ${valor}`);
+        quitar.addEventListener("click", () => {
+          lista.splice(i, 1);
+          marcarCambios();
+          pintarChips();
+          input.focus();
+        });
+        li.append(quitar);
+        return li;
+      });
+      if (!nodos.length)
+        nodos.push(el("li", "chips-vacio", "Sin elementos todavía."));
+      ul.replaceChildren(...nodos);
+    };
+
+    const agregar = () => {
+      const valor = input.value.trim();
+      if (!valor) return;
+      lista.push(valor);
+      input.value = "";
+      marcarCambios();
+      pintarChips();
+      input.focus();
+    };
+
+    const botonAgregar = el("button", "btn btn-ghost", "Añadir");
+    botonAgregar.type = "button";
+    botonAgregar.addEventListener("click", agregar);
+    input.addEventListener("keydown", (evento) => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        agregar();
+      }
+    });
+
+    const fila = el("div", "fila-anadir");
+    fila.append(input, botonAgregar);
+    envoltura.append(titulo, ul, fila);
+    pintarChips();
+    return envoltura;
+  }
+
+  /* Barra de cada elemento de lista: subir / bajar / eliminar */
+  const ICONO_SUBIR = "M12 19V5M5 12l7-7 7 7";
+  const ICONO_BAJAR = "M12 5v14M19 12l-7 7-7-7";
+  const ICONO_BORRAR =
+    "M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6";
+
+  function barraItem(
+    titulo: string,
+    lista: unknown[],
+    indice: number,
+    seccion: string,
+    repintar: () => void,
+  ): HTMLElement {
+    const barra = el("div", "item-barra");
+    barra.append(el("p", "item-titulo", titulo));
+    const acciones = el("div", "item-acciones");
+    const contenedor = cont(seccion);
+
+    const crearBoton = (
+      accion: string,
+      etiqueta: string,
+      trazo: string,
+      deshabilitado: boolean,
+      alPulsar: () => void,
+    ) => {
+      const boton = el("button", "btn-icono");
+      boton.type = "button";
+      boton.dataset.accion = accion;
+      boton.setAttribute("aria-label", `${etiqueta}: ${titulo}`);
+      boton.title = etiqueta;
+      boton.disabled = deshabilitado;
+      boton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${trazo}"></path></svg>`;
+      boton.addEventListener("click", alPulsar);
+      return boton;
+    };
+
+    const mover = (delta: number) => {
+      const destino = indice + delta;
+      if (destino < 0 || destino >= lista.length) return;
+      const [elemento] = lista.splice(indice, 1);
+      lista.splice(destino, 0, elemento);
+      marcarCambios();
+      repintar();
+      // Mantener el foco sobre el elemento movido (o su botón opuesto en el borde)
+      const accion = delta < 0 ? "subir" : "bajar";
+      const mismo = contenedor.querySelector<HTMLButtonElement>(
+        `[data-item="${destino}"] [data-accion="${accion}"]`,
+      );
+      if (mismo && !mismo.disabled) mismo.focus();
+      else
+        contenedor
+          .querySelector<HTMLButtonElement>(
+            `[data-item="${destino}"] [data-accion="${accion === "subir" ? "bajar" : "subir"}"]`,
+          )
+          ?.focus();
+    };
+
+    acciones.append(
+      crearBoton("subir", "Subir", ICONO_SUBIR, indice === 0, () => mover(-1)),
+      crearBoton(
+        "bajar",
+        "Bajar",
+        ICONO_BAJAR,
+        indice === lista.length - 1,
+        () => mover(1),
+      ),
+      crearBoton("eliminar", "Eliminar", ICONO_BORRAR, false, () => {
+        lista.splice(indice, 1);
+        marcarCambios();
+        repintar();
+        if (lista.length)
+          contenedor
+            .querySelector<HTMLButtonElement>(
+              `[data-item="${Math.min(indice, lista.length - 1)}"] [data-accion="eliminar"]`,
+            )
+            ?.focus();
+        else
+          contenedor.querySelector<HTMLButtonElement>(".btn-anadir")?.focus();
+      }),
+    );
+    barra.append(acciones);
+    return barra;
+  }
+
+  /* ============================================================
+     Secciones
+     ============================================================ */
+  function pintarPerfil() {
+    const c = cont("perfil");
+    const p = estado.perfil;
+    const contacto = el("div", "rejilla-2");
+    contacto.append(
+      campoTexto("Ubicación", p.ubicacion, (v) => (p.ubicacion = v)),
+      campoTexto("Email", p.email, (v) => (p.email = v), {
+        tipo: "email",
+        dataCampo: "email",
+        requerido: true,
+      }),
+      campoTexto("Teléfono", p.telefono, (v) => (p.telefono = v), {
+        tipo: "tel",
+      }),
+    );
+    const redes = el("div", "rejilla-2");
+    redes.append(
+      campoTexto("GitHub", p.social.github, (v) => (p.social.github = v), {
+        tipo: "url",
+      }),
+      campoTexto(
+        "LinkedIn",
+        p.social.linkedin,
+        (v) => (p.social.linkedin = v),
+        {
+          tipo: "url",
+          ayuda: "Déjalo vacío para ocultar el enlace en el sitio.",
+        },
+      ),
+      campoTexto(
+        "Twitter / X",
+        p.social.twitter,
+        (v) => (p.social.twitter = v),
+        {
+          tipo: "url",
+          ayuda: "Déjalo vacío para ocultar el enlace en el sitio.",
+        },
+      ),
+    );
+    c.replaceChildren(
+      campoTexto("Nombre completo", p.nombre, (v) => (p.nombre = v), {
+        dataCampo: "nombre",
+        requerido: true,
+      }),
+      campoTexto("Rol", p.rol, (v) => (p.rol = v)),
+      campoArea(
+        "Titular",
+        p.titular,
+        (v) => (p.titular = v),
+        2,
+        "Frase principal de la portada.",
+      ),
+      campoArea("Resumen", p.resumen, (v) => (p.resumen = v), 4),
+      contacto,
+      el("h3", "subtitulo", "Redes sociales"),
+      redes,
+    );
+  }
+
+  function pintarSobreMi() {
+    const c = cont("sobreMi");
+    const parrafos = estado.sobreMi.parrafos;
+    const nodos: Node[] = [el("p", "campo-etiqueta", "Párrafos")];
+    if (!parrafos.length)
+      nodos.push(estadoVacio("Aún no hay párrafos. Añade el primero."));
+    parrafos.forEach((texto, i) => {
+      const fila = el("div", "fila-punto");
+      const area = el("textarea");
+      area.rows = 4;
+      area.value = texto;
+      area.setAttribute("aria-label", `Párrafo ${i + 1}`);
+      area.addEventListener("input", () => {
+        parrafos[i] = area.value;
+        marcarCambios();
+      });
+      const quitar = el("button", "btn-icono");
+      quitar.type = "button";
+      quitar.setAttribute("aria-label", `Eliminar párrafo ${i + 1}`);
+      quitar.title = "Eliminar";
+      quitar.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONO_BORRAR}"></path></svg>`;
+      quitar.addEventListener("click", () => {
+        parrafos.splice(i, 1);
+        marcarCambios();
+        pintarSobreMi();
+        cont("sobreMi")
+          .querySelector<HTMLButtonElement>(".btn-anadir")
+          ?.focus();
+      });
+      fila.append(area, quitar);
+      nodos.push(fila);
+    });
+    nodos.push(
+      botonAnadir("Añadir párrafo", () => {
+        parrafos.push("");
+        marcarCambios();
+        pintarSobreMi();
+        const areas = cont("sobreMi").querySelectorAll("textarea");
+        areas[areas.length - 1]?.focus();
+      }),
+      editorChips(
+        "Stack tecnológico",
+        estado.sobreMi.stack,
+        "Añadir tecnología",
+      ),
+    );
+    c.replaceChildren(...nodos);
+  }
+
+  function pintarProyectos() {
+    const c = cont("proyectos");
+    const lista = estado.proyectos;
+    const nodos: Node[] = [];
+    if (!lista.length)
+      nodos.push(estadoVacio("Aún no hay proyectos. Añade el primero."));
+    lista.forEach((p, i) => {
+      const item = el("div", "item");
+      item.dataset.item = String(i);
+      item.append(
+        barraItem(
+          p.titulo.trim() || `Proyecto ${i + 1}`,
+          lista,
+          i,
+          "proyectos",
+          pintarProyectos,
+        ),
+        campoTexto("Título", p.titulo, (v) => (p.titulo = v)),
+        campoArea("Descripción", p.descripcion, (v) => (p.descripcion = v), 3),
+      );
+      const rejilla = el("div", "rejilla-2");
+      rejilla.append(
+        campoTexto("Slug", p.slug, (v) => (p.slug = v), {
+          ayuda: "Identificador para URLs, p. ej. sistema-control.",
+        }),
+        campoTexto("Año", p.año, (v) => (p.año = v)),
+        campoTexto("Demo", p.demo, (v) => (p.demo = v), {
+          ayuda:
+            "Ruta interna (/demos/…) o URL externa. Vacío oculta el botón.",
+        }),
+        campoTexto("Repositorio", p.repo, (v) => (p.repo = v), {
+          ayuda: "URL del repositorio. Vacío oculta el botón.",
+        }),
+        campoTexto("Documentación", p.doc, (v) => (p.doc = v), {
+          ayuda: "Slug del documento en /docs. Vacío si no tiene.",
+        }),
+      );
+      item.append(
+        rejilla,
+        editorChips("Etiquetas", p.tags, "Añadir etiqueta"),
+        campoCheck("Proyecto destacado", p.destacado, (v) => (p.destacado = v)),
+      );
+      nodos.push(item);
+    });
+    nodos.push(
+      botonAnadir("Añadir proyecto", () => {
+        lista.push({
+          slug: "",
+          titulo: "",
+          descripcion: "",
+          tags: [],
+          demo: "",
+          repo: "",
+          doc: "",
+          año: "",
+          destacado: false,
+        });
+        marcarCambios();
+        pintarProyectos();
+        cont("proyectos")
+          .querySelector<HTMLInputElement>(
+            `[data-item="${lista.length - 1}"] input`,
+          )
+          ?.focus();
+      }),
+    );
+    c.replaceChildren(...nodos);
+  }
+
+  function pintarExperiencia() {
+    const c = cont("experiencia");
+    const lista = estado.experiencia;
+    const nodos: Node[] = [];
+    if (!lista.length)
+      nodos.push(estadoVacio("Aún no hay experiencia registrada."));
+    lista.forEach((exp, i) => {
+      const item = el("div", "item");
+      item.dataset.item = String(i);
+      item.append(
+        barraItem(
+          exp.puesto.trim() || `Entrada ${i + 1}`,
+          lista,
+          i,
+          "experiencia",
+          pintarExperiencia,
+        ),
+      );
+      const rejilla = el("div", "rejilla-2");
+      rejilla.append(
+        campoTexto("Puesto", exp.puesto, (v) => (exp.puesto = v)),
+        campoTexto("Empresa", exp.empresa, (v) => (exp.empresa = v)),
+        campoTexto("Periodo", exp.periodo, (v) => (exp.periodo = v), {
+          ayuda: "P. ej. Abril 2022 – Actualidad.",
+        }),
+      );
+      item.append(rejilla, el("p", "campo-etiqueta", "Puntos destacados"));
+      exp.puntos.forEach((punto, j) => {
+        const fila = el("div", "fila-punto");
+        const area = el("textarea");
+        area.rows = 2;
+        area.value = punto;
+        area.setAttribute(
+          "aria-label",
+          `Punto ${j + 1} de ${exp.puesto || `la entrada ${i + 1}`}`,
+        );
+        area.addEventListener("input", () => {
+          exp.puntos[j] = area.value;
+          marcarCambios();
+        });
+        const quitar = el("button", "btn-icono");
+        quitar.type = "button";
+        quitar.setAttribute("aria-label", `Eliminar punto ${j + 1}`);
+        quitar.title = "Eliminar";
+        quitar.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONO_BORRAR}"></path></svg>`;
+        quitar.addEventListener("click", () => {
+          exp.puntos.splice(j, 1);
+          marcarCambios();
+          pintarExperiencia();
+          // Mantener el foco: botón de eliminar del punto vecino o, si no
+          // queda ninguno, el botón «Añadir punto» de esta entrada
+          const entrada = cont("experiencia").querySelector<HTMLElement>(
+            `[data-item="${i}"]`,
+          );
+          const botones = entrada?.querySelectorAll<HTMLButtonElement>(
+            ".fila-punto .btn-icono",
+          );
+          if (botones && botones.length)
+            botones[Math.min(j, botones.length - 1)]?.focus();
+          else
+            entrada
+              ?.querySelector<HTMLButtonElement>(".btn.btn-ghost")
+              ?.focus();
+        });
+        fila.append(area, quitar);
+        item.append(fila);
+      });
+      const anadirPunto = el("button", "btn btn-ghost", "+ Añadir punto");
+      anadirPunto.type = "button";
+      anadirPunto.addEventListener("click", () => {
+        exp.puntos.push("");
+        marcarCambios();
+        pintarExperiencia();
+        const areas = cont("experiencia").querySelectorAll(
+          `[data-item="${i}"] textarea`,
+        );
+        (areas[areas.length - 1] as HTMLTextAreaElement | undefined)?.focus();
+      });
+      item.append(anadirPunto);
+      nodos.push(item);
+    });
+    nodos.push(
+      botonAnadir("Añadir experiencia", () => {
+        lista.push({ puesto: "", empresa: "", periodo: "", puntos: [] });
+        marcarCambios();
+        pintarExperiencia();
+        cont("experiencia")
+          .querySelector<HTMLInputElement>(
+            `[data-item="${lista.length - 1}"] input`,
+          )
+          ?.focus();
+      }),
+    );
+    c.replaceChildren(...nodos);
+  }
+
+  /* Listas de objetos planos (formación, certificaciones, idiomas, navegación) */
+  type OpcionesListaSencilla = {
+    seccion: string;
+    lista: Record<string, string>[];
+    campos: Array<{ clave: string; etiqueta: string; ayuda?: string }>;
+    tituloItem: (item: Record<string, string>, i: number) => string;
+    crear: () => Record<string, string>;
+    textoAnadir: string;
+    textoVacio: string;
+  };
+
+  function pintarListaSencilla(opciones: OpcionesListaSencilla) {
+    const c = cont(opciones.seccion);
+    const repintar = () => pintarListaSencilla(opciones);
+    const nodos: Node[] = [];
+    if (!opciones.lista.length) nodos.push(estadoVacio(opciones.textoVacio));
+    opciones.lista.forEach((item, i) => {
+      const tarjeta = el("div", "item");
+      tarjeta.dataset.item = String(i);
+      tarjeta.append(
+        barraItem(
+          opciones.tituloItem(item, i),
+          opciones.lista,
+          i,
+          opciones.seccion,
+          repintar,
+        ),
+      );
+      const rejilla = el("div", "rejilla-2");
+      opciones.campos.forEach((campo) => {
+        rejilla.append(
+          campoTexto(
+            campo.etiqueta,
+            item[campo.clave] ?? "",
+            (v) => (item[campo.clave] = v),
+            {
+              ayuda: campo.ayuda,
+            },
+          ),
+        );
+      });
+      tarjeta.append(rejilla);
+      nodos.push(tarjeta);
+    });
+    nodos.push(
+      botonAnadir(opciones.textoAnadir, () => {
+        opciones.lista.push(opciones.crear());
+        marcarCambios();
+        repintar();
+        c.querySelector<HTMLInputElement>(
+          `[data-item="${opciones.lista.length - 1}"] input`,
+        )?.focus();
+      }),
+    );
+    c.replaceChildren(...nodos);
+  }
+
+  function pintarEducacion() {
+    pintarListaSencilla({
+      seccion: "educacion",
+      lista: estado.educacion,
+      campos: [
+        { clave: "titulo", etiqueta: "Título" },
+        { clave: "institucion", etiqueta: "Institución" },
+        { clave: "periodo", etiqueta: "Periodo" },
+      ],
+      tituloItem: (item, i) =>
+        (item["titulo"] ?? "").trim() || `Formación ${i + 1}`,
+      crear: () => ({ titulo: "", institucion: "", periodo: "" }),
+      textoAnadir: "Añadir formación",
+      textoVacio: "Aún no hay formación registrada.",
+    });
+  }
+
+  function pintarCertificaciones() {
+    pintarListaSencilla({
+      seccion: "certificaciones",
+      lista: estado.certificaciones,
+      campos: [
+        { clave: "nombre", etiqueta: "Nombre" },
+        { clave: "entidad", etiqueta: "Entidad" },
+        { clave: "año", etiqueta: "Año" },
+      ],
+      tituloItem: (item, i) =>
+        (item["nombre"] ?? "").trim() || `Certificación ${i + 1}`,
+      crear: () => ({ nombre: "", entidad: "", año: "" }),
+      textoAnadir: "Añadir certificación",
+      textoVacio: "Aún no hay certificaciones.",
+    });
+  }
+
+  function pintarIdiomas() {
+    pintarListaSencilla({
+      seccion: "idiomas",
+      lista: estado.idiomas,
+      campos: [
+        { clave: "idioma", etiqueta: "Idioma" },
+        { clave: "nivel", etiqueta: "Nivel" },
+      ],
+      tituloItem: (item, i) =>
+        (item["idioma"] ?? "").trim() || `Idioma ${i + 1}`,
+      crear: () => ({ idioma: "", nivel: "" }),
+      textoAnadir: "Añadir idioma",
+      textoVacio: "Aún no hay idiomas.",
+    });
+  }
+
+  function pintarNavegacion() {
+    pintarListaSencilla({
+      seccion: "navegacion",
+      lista: estado.navegacion,
+      campos: [
+        { clave: "texto", etiqueta: "Texto" },
+        {
+          clave: "href",
+          etiqueta: "Enlace",
+          ayuda: "Ancla (#seccion) o ruta interna (/docs).",
+        },
+      ],
+      tituloItem: (item, i) =>
+        (item["texto"] ?? "").trim() || `Enlace ${i + 1}`,
+      crear: () => ({ texto: "", href: "" }),
+      textoAnadir: "Añadir enlace",
+      textoVacio: "El menú está vacío.",
+    });
+  }
+
+  function pintarCv() {
+    const c = cont("cv");
+    const plantillas: Array<[string, string]> = [
+      ["moderna", "Moderna"],
+      ["clasica", "Clásica"],
+      ["compacta", "Compacta"],
+    ];
+    const previas = el("p", "cv-previas");
+    previas.append("Ver vista previa de cada plantilla: ");
+    plantillas.forEach(([valor, texto], i) => {
+      if (i) previas.append(" · ");
+      const enlace = el("a", "", texto);
+      enlace.href = withBase(`cv/${valor}/`);
+      enlace.target = "_blank";
+      enlace.rel = "noopener";
+      enlace.setAttribute(
+        "aria-label",
+        `Ver vista previa de la plantilla ${texto}`,
+      );
+      previas.append(enlace);
+    });
+    c.replaceChildren(
+      campoSelect(
+        "Plantilla de la hoja de vida",
+        estado.cv.plantilla,
+        plantillas,
+        (v) => (estado.cv.plantilla = v),
+      ),
+      previas,
+      campoTexto(
+        "Archivo estático (opcional)",
+        estado.cv.archivoEstatico,
+        (v) => (estado.cv.archivoEstatico = v),
+        {
+          ayuda:
+            "Déjalo vacío para usar la hoja de vida imprimible de /cv; o escribe p. ej. cv.pdf para servir un PDF estático desde /public.",
+        },
+      ),
+      campoArea(
+        "Perfil profesional",
+        estado.cv.perfilProfesional,
+        (v) => (estado.cv.perfilProfesional = v),
+        4,
+      ),
+    );
+  }
+
+  function pintarTodo() {
+    pintarPerfil();
+    pintarSobreMi();
+    pintarProyectos();
+    pintarExperiencia();
+    pintarEducacion();
+    pintarCertificaciones();
+    pintarIdiomas();
+    pintarNavegacion();
+    pintarCv();
+  }
+
+  /* ============================================================
+     Arranque: con token guardado se carga la versión real del
+     repositorio; el JSON del build queda solo como respaldo.
+     ============================================================ */
+  async function cargarInicial() {
+    const token = inputToken.value.trim();
+    if (token) {
+      anunciar("info", ["Cargando datos desde GitHub…"]);
+      try {
+        const { contenido, sha } = await obtenerArchivo(token);
+        estado = JSON.parse(contenido) as DatosSitio;
+        shaActual = sha;
+        pintarTodo();
+        limpiarEstado();
+        return;
+      } catch {
+        /* token inválido o sin red: se cae al JSON del build con aviso */
+      }
+    }
+    pintarTodo();
+    anunciar("info", [
+      "Datos del último build: pulsa «Recargar desde GitHub» antes de publicar.",
+    ]);
+  }
+
+  inicializarToken();
+  void cargarInicial();
+</script>

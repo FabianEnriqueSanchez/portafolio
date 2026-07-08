@@ -5,7 +5,7 @@ este proyecto y cómo usarlas.
 
 ## 1. OpenSpec — desarrollo guiado por especificaciones
 
-Acuerdas *qué* construir antes de escribir código. Crea propuestas de cambio
+Acuerdas _qué_ construir antes de escribir código. Crea propuestas de cambio
 revisables en la carpeta `openspec/`.
 
 - **Estructura:** `openspec/changes/` y `openspec/specs/`
@@ -36,15 +36,16 @@ padding apretado, contraste bajo, etc.).
 
 Agentes especializados instalados en `.claude/agents/`:
 
-| Agente               | Para qué sirve                                |
-| -------------------- | --------------------------------------------- |
-| `frontend-developer` | Desarrollo de interfaz y componentes          |
-| `ui-ux-designer`     | Diseño de experiencia e interfaz              |
-| `accessibility`      | Revisión de accesibilidad (WCAG)              |
-| `seo-analyzer`       | Optimización para buscadores                  |
-| `technical-writer`   | Redacción de documentación técnica            |
+| Agente               | Para qué sirve                       |
+| -------------------- | ------------------------------------ |
+| `frontend-developer` | Desarrollo de interfaz y componentes |
+| `ui-ux-designer`     | Diseño de experiencia e interfaz     |
+| `accessibility`      | Revisión de accesibilidad (WCAG)     |
+| `seo-analyzer`       | Optimización para buscadores         |
+| `technical-writer`   | Redacción de documentación técnica   |
 
 Instalar más componentes:
+
 ```bash
 npx claude-code-templates@latest --agent "categoria/nombre" --yes
 ```

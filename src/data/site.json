@@ -1,0 +1,146 @@
+{
+  "perfil": {
+    "nombre": "Fabián Enrique Sánchez Solano",
+    "rol": "Analista de Sistemas y Desarrollador de TI",
+    "titular": "Desarrollo software, automatizo procesos y construyo APIs que mejoran la productividad de las empresas.",
+    "resumen": "Más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico. Trabajo con Python, Java, JavaScript y Vue.js, integración de APIs REST, AWS y metodologías ágiles (Scrum).",
+    "ubicacion": "Santander, Colombia",
+    "email": "fabienrisanchez@gmail.com",
+    "telefono": "+57 302 262 4361",
+    "social": {
+      "github": "https://github.com/FabianEnriqueSanchez",
+      "linkedin": "",
+      "twitter": ""
+    }
+  },
+  "sobreMi": {
+    "parrafos": [
+      "Soy Analista de Sistemas y Desarrollador de TI con más de 4 años de experiencia. Me especializo en backend, frontend y bases de datos, y disfruto convertir necesidades del negocio en software fiable que genera impacto real en la productividad.",
+      "Actualmente lidero el área de desarrollo en Grupo Ardisa, donde construyo APIs, automatizo procesos internos y doy soporte técnico avanzado. Me destaco por la resolución de problemas, la optimización de procesos y el trabajo en equipo bajo metodología Scrum."
+    ],
+    "stack": [
+      "Python",
+      "JavaScript",
+      "Java",
+      "Vue.js",
+      "SQL / MySQL",
+      "APIs REST",
+      "AWS (EC2)",
+      "Git",
+      "Power Automate",
+      "Power Apps",
+      "Scrum",
+      "Análisis de datos"
+    ]
+  },
+  "proyectos": [
+    {
+      "slug": "sistema-control",
+      "titulo": "Sistema de control con Java y Arduino",
+      "descripcion": "Sistema de control que integra software en Java con hardware Arduino para automatizar y optimizar procesos operativos internos.",
+      "tags": ["Java", "Arduino", "IoT", "Automatización"],
+      "demo": "/demos/sistema-control",
+      "repo": "",
+      "doc": "sistema-control",
+      "año": "2024",
+      "destacado": true
+    },
+    {
+      "slug": "apis-datos",
+      "titulo": "APIs y servidores de gestión de datos",
+      "descripcion": "Desarrollo de APIs REST y servidores para la integración y gestión de datos empresariales, base de varias automatizaciones internas.",
+      "tags": ["Python", "API REST", "MySQL", "AWS EC2"],
+      "demo": "/demos/apis-datos",
+      "repo": "",
+      "doc": "apis-datos",
+      "año": "2023",
+      "destacado": false
+    },
+    {
+      "slug": "automatizacion-procesos",
+      "titulo": "Automatización de procesos internos",
+      "descripcion": "Formularios y flujos automatizados con Power Automate y Power Apps que redujeron tiempos de soporte y optimizaron procesos del negocio.",
+      "tags": ["Power Automate", "Power Apps", "Scrum"],
+      "demo": "/demos/automatizacion-procesos",
+      "repo": "",
+      "doc": "automatizacion-procesos",
+      "año": "2023",
+      "destacado": false
+    }
+  ],
+  "experiencia": [
+    {
+      "puesto": "Analista de TI",
+      "empresa": "Grupo Ardisa",
+      "periodo": "Abril 2022 – Actualidad",
+      "puntos": [
+        "Liderazgo del área de desarrollo, con responsabilidad en backend y frontend.",
+        "Desarrollo de automatizaciones y formularios que optimizaron procesos internos.",
+        "Soporte técnico avanzado en sistemas SAP, Google y Microsoft.",
+        "Implementación de un sistema de control con Java y Arduino para mejorar la eficiencia operativa.",
+        "Desarrollo de APIs y servidores para integración y gestión de datos empresariales."
+      ]
+    },
+    {
+      "puesto": "Aprendiz Técnico en Sistemas",
+      "empresa": "Clínica Chicamocha (SENA)",
+      "periodo": "Octubre 2021 – Febrero 2022",
+      "puntos": [
+        "Mantenimiento preventivo y correctivo de equipos de cómputo.",
+        "Soporte técnico presencial y remoto en conectividad, plataformas y herramientas digitales."
+      ]
+    }
+  ],
+  "educacion": [
+    {
+      "titulo": "Tecnología en Análisis y Desarrollo de Software",
+      "institucion": "SENA",
+      "periodo": "En curso"
+    },
+    {
+      "titulo": "Técnico en Bases de Datos: Generalidades y Sistemas de Gestión",
+      "institucion": "SENA",
+      "periodo": "2021"
+    }
+  ],
+  "certificaciones": [
+    {
+      "nombre": "Python de cero a experto",
+      "entidad": "Fundación Universitaria Comfenalco Santander",
+      "año": "2025"
+    },
+    {
+      "nombre": "Metodología Scrum",
+      "entidad": "Cámara de Comercio Proyecta",
+      "año": "2024"
+    },
+    {
+      "nombre": "Programación y manejo del Internet de las Cosas (IoT)",
+      "entidad": "SENA",
+      "año": "2020"
+    }
+  ],
+  "idiomas": [
+    { "idioma": "Español", "nivel": "Nativo" },
+    { "idioma": "Inglés", "nivel": "Intermedio" }
+  ],
+  "navegacion": [
+    { "texto": "Inicio", "href": "#inicio" },
+    { "texto": "Sobre mí", "href": "#sobre-mi" },
+    { "texto": "Experiencia", "href": "#experiencia" },
+    { "texto": "Proyectos", "href": "#proyectos" },
+    { "texto": "Documentación", "href": "/docs" },
+    { "texto": "Contacto", "href": "#contacto" }
+  ],
+  "cv": {
+    "plantilla": "moderna",
+    "archivoEstatico": "",
+    "perfilProfesional": "Analista de Sistemas y Desarrollador de TI con más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico avanzado. Especializado en Python, Java, JavaScript y Vue.js, con experiencia en APIs REST, AWS y metodologías ágiles."
+  },
+  "admin": {
+    "owner": "FabianEnriqueSanchez",
+    "repo": "portafolio",
+    "branch": "main",
+    "rutaDatos": "src/data/site.json"
+  }
+}

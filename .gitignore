@@ -15,10 +15,17 @@ pnpm-debug.log*
 
 # environment variables
 .env
-.env.production
+.env.*
+!.env.example
 
 # macOS-specific files
 .DS_Store
 
+# windows-specific files
+Thumbs.db
+
 # jetbrains setting folder
 .idea/
+
+# configuración local de Claude Code
+.claude/settings.local.json

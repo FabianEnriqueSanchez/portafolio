@@ -1,16 +1,51 @@
 ---
 import { proyectos } from "../data/site";
 import { withBase } from "../lib/utils";
+
+const esExterno = (url: string) => /^https?:\/\//.test(url);
+// Las rutas internas ("/demos/...") respetan el base y la barra final
+const hrefDemo = (demo: string) =>
+  esExterno(demo) ? demo : withBase(demo.replace(/\/$/, "") + "/");
 ---
 
 <section id="proyectos" class="section">
   <div class="container">
+    <!-- Sprite de iconos: se declara una vez y cada tarjeta lo reutiliza -->
+    <svg style="display: none" aria-hidden="true">
+      <symbol id="i-repo" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M12 .5A12 12 0 0 0 0 12.6c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.4-5.5-6 0-1.3.5-2.4 1.2-3.2 0-.3-.5-1.5.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 24 12.6 12 12 0 0 0 12 .5z"
+        ></path>
+      </symbol>
+      <symbol id="i-demo" viewBox="0 0 24 24">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"
+        ></path>
+      </symbol>
+      <symbol id="i-doc" viewBox="0 0 24 24">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"
+        ></path>
+      </symbol>
+    </svg>
+
     <header class="proyectos-head reveal">
       <p class="eyebrow">Trabajo</p>
       <h2 class="section-title">Proyectos demo y documentación</h2>
       <p class="section-intro">
-        Una selección de proyectos. Cada uno enlaza a su repositorio, demo en
-        vivo (si aplica) y documentación detallada.
+        Una selección de proyectos: cada uno incluye una demo interactiva y su
+        documentación técnica.
       </p>
     </header>
 
@@ -32,26 +67,50 @@ import { withBase } from "../lib/utils";
               ))}
             </ul>
 
-            <div class="card-links">
-              {p.repo && (
-                <a href={p.repo} class="card-link" target="_blank" rel="noopener">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A12 12 0 0 0 0 12.6c0 5.3 3.4 9.8 8.2 11.4.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.4-5.5-6 0-1.3.5-2.4 1.2-3.2 0-.3-.5-1.5.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 24 12.6 12 12 0 0 0 12 .5z" /></svg>
-                  Código
-                </a>
-              )}
-              {p.demo && (
-                <a href={p.demo} class="card-link" target="_blank" rel="noopener">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6" /><path d="M10 14 21 3" /></svg>
-                  Demo
-                </a>
-              )}
-              {p.doc && (
-                <a href={withBase(`docs/${p.doc}`)} class="card-link card-link-doc">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" /></svg>
-                  Documentación
-                </a>
-              )}
-            </div>
+            {(p.repo || p.demo || p.doc) && (
+              <div class="card-links">
+                {p.repo && (
+                  <a
+                    href={p.repo}
+                    class="card-link"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`Código de ${p.titulo}`}
+                  >
+                    <svg width="16" height="16" aria-hidden="true">
+                      <use href="#i-repo" />
+                    </svg>
+                    Código
+                  </a>
+                )}
+                {p.demo && (
+                  <a
+                    href={hrefDemo(p.demo)}
+                    class="card-link"
+                    target={esExterno(p.demo) ? "_blank" : undefined}
+                    rel={esExterno(p.demo) ? "noopener" : undefined}
+                    aria-label={`Demo de ${p.titulo}`}
+                  >
+                    <svg width="16" height="16" aria-hidden="true">
+                      <use href="#i-demo" />
+                    </svg>
+                    Demo
+                  </a>
+                )}
+                {p.doc && (
+                  <a
+                    href={withBase(`docs/${p.doc}/`)}
+                    class="card-link card-link-doc"
+                    aria-label={`Documentación de ${p.titulo}`}
+                  >
+                    <svg width="16" height="16" aria-hidden="true">
+                      <use href="#i-doc" />
+                    </svg>
+                    Documentación
+                  </a>
+                )}
+              </div>
+            )}
           </article>
         ))
       }
@@ -60,11 +119,6 @@ import { withBase } from "../lib/utils";
 </section>
 
 <style>
-  .section-alt {
-    background: var(--bg-soft);
-    border-block: 1px solid var(--border);
-  }
-
   .proyectos-head {
     margin-bottom: 2.75rem;
   }
@@ -82,8 +136,10 @@ import { withBase } from "../lib/utils";
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1.6rem;
-    transition: border-color var(--dur) var(--ease),
-      transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    transition:
+      border-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
   }
 
   .card:hover {
@@ -111,7 +167,7 @@ import { withBase } from "../lib/utils";
 
   .card-badge {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--accent);
@@ -142,7 +198,7 @@ import { withBase } from "../lib/utils";
 
   .card-tags li {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--muted);
     border: 1px solid var(--border);
     padding: 0.25rem 0.55rem;

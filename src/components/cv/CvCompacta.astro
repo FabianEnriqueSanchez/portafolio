@@ -1,0 +1,380 @@
+---
+// ============================================================
+//  Plantilla de CV "Compacta": densidad alta para caber en una
+//  sola página A4. Cabecera en una línea con puntos medios y
+//  dos columnas de contenido con tipografía pequeña.
+// ============================================================
+import {
+  perfil,
+  cv,
+  experiencia,
+  educacion,
+  certificaciones,
+  idiomas,
+  sobreMi,
+} from "../../data/site";
+
+const telHref = `tel:${perfil.telefono.replace(/[^+\d]/g, "")}`;
+const sinProtocolo = (url: string) =>
+  url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+// Los datos vacíos (p. ej. teléfono o LinkedIn) se filtran ANTES de
+// unir con puntos medios para no dejar separadores huérfanos.
+const datosCabecera: { texto: string; href: string }[] = [
+  { texto: perfil.rol, href: "" },
+  { texto: perfil.email, href: `mailto:${perfil.email}` },
+  { texto: perfil.telefono, href: telHref },
+  { texto: perfil.ubicacion, href: "" },
+  {
+    texto: perfil.social.github ? sinProtocolo(perfil.social.github) : "",
+    href: perfil.social.github,
+  },
+  {
+    texto: perfil.social.linkedin ? sinProtocolo(perfil.social.linkedin) : "",
+    href: perfil.social.linkedin,
+  },
+].filter((d) => Boolean(d.texto));
+---
+
+<article class="cv-compacta">
+  <header class="cabecera">
+    <h1>{perfil.nombre}</h1>
+    {
+      datosCabecera.map((dato) => (
+        <>
+          <span class="sep" aria-hidden="true">
+            ·
+          </span>
+          {dato.href ? (
+            <a href={dato.href} rel="noopener">
+              {dato.texto}
+            </a>
+          ) : (
+            <span>{dato.texto}</span>
+          )}
+        </>
+      ))
+    }
+  </header>
+
+  <div class="columnas">
+    <div class="col-principal">
+      <section class="seccion" aria-labelledby="k-perfil">
+        <h2 id="k-perfil">Perfil</h2>
+        <p class="texto">{cv.perfilProfesional}</p>
+      </section>
+
+      <section class="seccion" aria-labelledby="k-experiencia">
+        <h2 id="k-experiencia">Experiencia</h2>
+        {
+          experiencia.map((exp) => (
+            <div class="entrada">
+              <p class="linea-puesto">
+                <strong>{exp.puesto}</strong> — {exp.empresa}
+                <span class="periodo">{exp.periodo}</span>
+              </p>
+              <ul class="puntos">
+                {exp.puntos.map((punto) => (
+                  <li>{punto}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </section>
+    </div>
+
+    <div class="col-secundaria">
+      <section class="seccion" aria-labelledby="k-stack">
+        <h2 id="k-stack">Stack técnico</h2>
+        <ul class="stack">
+          {sobreMi.stack.map((tec) => <li>{tec}</li>)}
+        </ul>
+      </section>
+
+      <section class="seccion" aria-labelledby="k-formacion">
+        <h2 id="k-formacion">Formación</h2>
+        <ul class="lista">
+          {
+            educacion.map((edu) => (
+              <li>
+                <strong>{edu.titulo}</strong>
+                <span class="detalle">
+                  {edu.institucion} · {edu.periodo}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="seccion" aria-labelledby="k-certificaciones">
+        <h2 id="k-certificaciones">Certificaciones</h2>
+        <ul class="lista">
+          {
+            certificaciones.map((cert) => (
+              <li>
+                <strong>{cert.nombre}</strong>
+                <span class="detalle">
+                  {cert.entidad} · {cert.año}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="seccion" aria-labelledby="k-idiomas">
+        <h2 id="k-idiomas">Idiomas</h2>
+        <ul class="lista idiomas">
+          {
+            idiomas.map((idi) => (
+              <li>
+                <strong>{idi.idioma}</strong>
+                <span class="detalle">{idi.nivel}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+  </div>
+</article>
+
+<style>
+  .cv-compacta {
+    --cv-tinta: #1c1917;
+    --cv-gris: #57534e;
+    --cv-gris-suave: #78716c;
+    --cv-teal: #0f766e;
+    --cv-linea: #e7e3dd;
+
+    color: var(--cv-tinta);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 4vw, 1.75rem);
+  }
+
+  /* ---------- Cabecera en línea con puntos medios ---------- */
+  .cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.45rem;
+    row-gap: 0.1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--cv-tinta);
+  }
+
+  .cabecera h1 {
+    display: inline;
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 720;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .cabecera span,
+  .cabecera a {
+    font-size: 0.8rem;
+    color: var(--cv-gris);
+    overflow-wrap: anywhere;
+  }
+
+  .cabecera a {
+    text-decoration: underline;
+    text-decoration-color: var(--cv-linea);
+    text-underline-offset: 2px;
+  }
+
+  .cabecera a:hover {
+    color: var(--cv-teal);
+  }
+
+  .sep {
+    color: var(--cv-gris-suave);
+  }
+
+  /* ---------- Dos columnas densas ---------- */
+  .columnas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    column-gap: 1.4rem;
+    margin-top: 0.9rem;
+  }
+
+  .seccion + .seccion {
+    margin-top: 0.9rem;
+  }
+
+  .seccion h2 {
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--cv-teal);
+    border-bottom: 1px solid var(--cv-linea);
+    padding-bottom: 0.2rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .texto {
+    color: var(--cv-gris);
+  }
+
+  .entrada {
+    margin-bottom: 0.7rem;
+  }
+
+  .entrada:last-child {
+    margin-bottom: 0;
+  }
+
+  .linea-puesto {
+    line-height: 1.35;
+  }
+
+  .linea-puesto strong {
+    font-weight: 660;
+  }
+
+  .periodo {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--cv-gris-suave);
+    margin-top: 0.08rem;
+  }
+
+  .puntos {
+    margin-top: 0.3rem;
+    padding-left: 1rem;
+    color: var(--cv-gris);
+  }
+
+  .puntos li {
+    margin-bottom: 0.15rem;
+  }
+
+  .puntos li::marker {
+    color: var(--cv-teal);
+  }
+
+  /* Stack como lista compacta de etiquetas de texto */
+  .stack {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .stack li {
+    font-size: 0.72rem;
+    font-weight: 540;
+    color: var(--cv-gris);
+    border: 1px solid var(--cv-linea);
+    border-radius: 4px;
+    padding: 0.08rem 0.4rem;
+  }
+
+  .lista {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .lista li {
+    display: grid;
+    gap: 0.05rem;
+    line-height: 1.35;
+  }
+
+  .lista strong {
+    font-weight: 640;
+  }
+
+  .detalle {
+    font-size: 0.74rem;
+    color: var(--cv-gris-suave);
+  }
+
+  .idiomas li {
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .idiomas .detalle {
+    text-align: right;
+  }
+
+  /* ---------- Móvil: una columna ---------- */
+  @media (max-width: 560px) {
+    .columnas {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0.9rem;
+    }
+  }
+
+  /* ---------- Impresión: todo en una página A4 ---------- */
+  @media print {
+    .cv-compacta {
+      font-size: 10px;
+      line-height: 1.4;
+      padding: 0;
+    }
+    .cabecera {
+      padding-bottom: 2.2mm;
+    }
+    .cabecera h1 {
+      font-size: 14px;
+    }
+    .cabecera span,
+    .cabecera a {
+      font-size: 9.5px;
+    }
+    .cabecera a {
+      text-decoration: none;
+      color: var(--cv-gris);
+    }
+    .columnas {
+      margin-top: 3mm;
+      column-gap: 6mm;
+    }
+    .seccion + .seccion {
+      margin-top: 3mm;
+    }
+    .seccion h2 {
+      font-size: 8px;
+    }
+    .texto,
+    .puntos {
+      font-size: 10px;
+    }
+    .linea-puesto {
+      font-size: 10.5px;
+    }
+    .periodo {
+      font-size: 9px;
+    }
+    .stack li {
+      font-size: 8.5px;
+    }
+    .lista li {
+      font-size: 9.5px;
+    }
+    .detalle {
+      font-size: 8.5px;
+    }
+    .entrada,
+    .lista li,
+    .seccion h2 {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+</style>

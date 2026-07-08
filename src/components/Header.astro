@@ -8,22 +8,23 @@ const iniciales = perfil.nombre
   .slice(0, 2)
   .map((p) => p[0])
   .join("");
+
+// Las anclas se prefijan con la home para que funcionen también desde /docs
+const hrefNav = (href: string) =>
+  href.startsWith("#") ? withBase("/") + href : withBase(href);
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a href={withBase("/")} class="logo" aria-label="Inicio">
-      <span class="logo-mark">{iniciales}</span>
+    <a href={withBase("/")} class="logo">
+      <span class="logo-mark" aria-hidden="true">{iniciales}</span>
       <span class="logo-text">{perfil.nombre}</span>
     </a>
 
     <nav class="nav" aria-label="Navegación principal">
       {
         navegacion.map((item) => (
-          <a
-            href={item.href.startsWith("#") ? item.href : withBase(item.href)}
-            class="nav-link"
-          >
+          <a href={hrefNav(item.href)} class="nav-link">
             {item.texto}
           </a>
         ))
@@ -35,14 +36,37 @@ const iniciales = perfil.nombre
         id="toggle-tema"
         class="icon-btn"
         type="button"
-        aria-label="Cambiar tema claro u oscuro"
-        title="Cambiar tema"
+        aria-label="Activar tema oscuro"
+        aria-pressed="false"
       >
-        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          class="icon-sun"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+          <path
+            d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          ></path>
         </svg>
-        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          class="icon-moon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
         </svg>
       </button>
@@ -53,8 +77,18 @@ const iniciales = perfil.nombre
         type="button"
         aria-label="Abrir menú"
         aria-expanded="false"
+        aria-controls="nav-movil"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
           <path d="M3 6h18M3 12h18M3 18h18"></path>
         </svg>
       </button>
@@ -65,10 +99,7 @@ const iniciales = perfil.nombre
   <nav id="nav-movil" class="nav-movil" aria-label="Navegación móvil" hidden>
     {
       navegacion.map((item) => (
-        <a
-          href={item.href.startsWith("#") ? item.href : withBase(item.href)}
-          class="nav-link"
-        >
+        <a href={hrefNav(item.href)} class="nav-link">
           {item.texto}
         </a>
       ))
@@ -131,7 +162,9 @@ const iniciales = perfil.nombre
     font-size: var(--text-sm);
     color: var(--muted);
     font-weight: 500;
-    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+    transition:
+      color var(--dur) var(--ease),
+      background var(--dur) var(--ease);
   }
 
   .nav-link:hover {
@@ -155,7 +188,9 @@ const iniciales = perfil.nombre
     background: var(--surface);
     color: var(--text);
     cursor: pointer;
-    transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+    transition:
+      border-color var(--dur) var(--ease),
+      color var(--dur) var(--ease);
   }
 
   .icon-btn:hover {
@@ -190,7 +225,8 @@ const iniciales = perfil.nombre
     padding: 0.7rem 0.85rem;
   }
 
-  @media (max-width: 760px) {
+  /* Con 6 enlaces + nombre completo, el nav de escritorio necesita ~980px */
+  @media (max-width: 980px) {
     .nav {
       display: none;
     }
@@ -204,13 +240,25 @@ const iniciales = perfil.nombre
 </style>
 
 <script>
-  // Alternar tema claro/oscuro
+  // Alternar tema claro/oscuro (aria-pressed = "tema oscuro activo")
   const btn = document.getElementById("toggle-tema");
+
+  function sincronizarBotonTema() {
+    const oscuro =
+      document.documentElement.getAttribute("data-theme") === "dark";
+    btn?.setAttribute("aria-pressed", String(oscuro));
+    btn?.setAttribute(
+      "aria-label",
+      oscuro ? "Activar tema claro" : "Activar tema oscuro",
+    );
+  }
+  sincronizarBotonTema();
+
   btn?.addEventListener("click", () => {
     const root = document.documentElement;
-    const actual = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
-    const nuevo = actual === "dark" ? "light" : "dark";
+    const nuevo = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", nuevo);
+    sincronizarBotonTema();
     try {
       localStorage.setItem("tema", nuevo);
     } catch (e) {}
@@ -219,18 +267,30 @@ const iniciales = perfil.nombre
   // Menú móvil
   const menuBtn = document.getElementById("toggle-menu");
   const navMovil = document.getElementById("nav-movil");
+
+  function fijarMenu(abierto: boolean) {
+    if (!navMovil || !menuBtn) return;
+    navMovil.setAttribute("data-abierto", String(abierto));
+    navMovil.hidden = !abierto;
+    menuBtn.setAttribute("aria-expanded", String(abierto));
+    menuBtn.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
+  }
+
   menuBtn?.addEventListener("click", () => {
-    const abierto = navMovil?.getAttribute("data-abierto") === "true";
-    navMovil?.setAttribute("data-abierto", String(!abierto));
-    if (navMovil) navMovil.hidden = abierto;
-    menuBtn.setAttribute("aria-expanded", String(!abierto));
+    fijarMenu(navMovil?.getAttribute("data-abierto") !== "true");
   });
-  // Cerrar el menú al pulsar un enlace
-  navMovil?.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => {
-      navMovil.setAttribute("data-abierto", "false");
-      navMovil.hidden = true;
-      menuBtn?.setAttribute("aria-expanded", "false");
-    })
-  );
+
+  // Cerrar el menú al pulsar un enlace o con Escape
+  navMovil
+    ?.querySelectorAll("a")
+    .forEach((a) => a.addEventListener("click", () => fijarMenu(false)));
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "Escape" &&
+      navMovil?.getAttribute("data-abierto") === "true"
+    ) {
+      fijarMenu(false);
+      menuBtn?.focus();
+    }
+  });
 </script>

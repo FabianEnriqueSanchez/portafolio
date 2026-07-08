@@ -6,7 +6,7 @@ import Footer from "../../components/Footer.astro";
 import { withBase } from "../../lib/utils";
 
 const docs = (await getCollection("docs")).sort(
-  (a, b) => a.data.orden - b.data.orden
+  (a, b) => a.data.orden - b.data.orden,
 );
 ---
 
@@ -15,7 +15,7 @@ const docs = (await getCollection("docs")).sort(
   descripcion="Documentación técnica de los proyectos."
 >
   <Header />
-  <main id="contenido" class="section">
+  <main id="contenido" class="section" tabindex="-1">
     <div class="container docs-wrap">
       <header class="docs-head">
         <p class="eyebrow">Documentación</p>
@@ -36,7 +36,7 @@ const docs = (await getCollection("docs")).sort(
           <ul class="docs-list">
             {docs.map((doc) => (
               <li>
-                <a href={withBase(`docs/${doc.id}`)} class="doc-card">
+                <a href={withBase(`docs/${doc.id}/`)} class="doc-card">
                   <div class="doc-card-body">
                     <h2 class="doc-card-title">{doc.data.titulo}</h2>
                     <p class="doc-card-desc">{doc.data.descripcion}</p>
@@ -46,7 +46,17 @@ const docs = (await getCollection("docs")).sort(
                       </span>
                     )}
                   </div>
-                  <svg class="doc-card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <svg
+                    class="doc-card-arrow"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
                 </a>
@@ -85,7 +95,8 @@ const docs = (await getCollection("docs")).sort(
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--surface);
-    transition: border-color var(--dur) var(--ease),
+    transition:
+      border-color var(--dur) var(--ease),
       transform var(--dur) var(--ease);
   }
 

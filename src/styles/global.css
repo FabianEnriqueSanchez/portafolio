@@ -5,12 +5,16 @@
    ============================================================ */
 
 :root {
-  /* Tipografía */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  /* Tipografía (fuentes variables autoalojadas vía Fontsource) */
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
-    Menlo, Consolas, monospace;
+  --font-display:
+    "Space Grotesk Variable", "Inter Variable", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas,
+    monospace;
 
   /* Escala de tamaños (type scale) */
   --text-xs: 0.8125rem;
@@ -41,15 +45,16 @@
   --surface: #ffffff;
   --text: #1c1917;
   --muted: #57534e;
-  --faint: #78716c;
+  /* 5.05:1 sobre --bg-soft y 5.47:1 sobre --bg (WCAG AA con margen) */
+  --faint: #6b655f;
   --border: #e7e3dd;
   --border-strong: #d6d1c8;
   --accent: #0f766e;
   --accent-hover: #115e58;
   --accent-contrast: #ffffff;
   --accent-soft: #d7efec;
-  --shadow: 0 1px 2px rgba(28, 25, 23, 0.05),
-    0 8px 24px -12px rgba(28, 25, 23, 0.12);
+  --shadow:
+    0 1px 2px rgba(28, 25, 23, 0.05), 0 8px 24px -12px rgba(28, 25, 23, 0.12);
 }
 
 /* ---------- Tema oscuro ---------- */
@@ -79,6 +84,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* El header sticky mide 68px: evita que tape las secciones al navegar por anclas */
+  scroll-padding-top: calc(68px + 1rem);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -102,7 +109,6 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 img {
@@ -143,6 +149,11 @@ h4 {
   padding-block: clamp(4rem, 9vw, 7rem);
 }
 
+.section-alt {
+  background: var(--bg-soft);
+  border-block: 1px solid var(--border);
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -176,8 +187,10 @@ h4 {
   font-weight: 560;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background var(--dur) var(--ease),
-    border-color var(--dur) var(--ease), transform var(--dur) var(--ease),
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
@@ -205,16 +218,22 @@ h4 {
   color: var(--accent);
 }
 
-/* ---------- Animación de entrada al hacer scroll ---------- */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
-}
+/* ---------- Animación de entrada al hacer scroll ----------
+   Solo se oculta el contenido si hay JS (html.js, ver BaseLayout)
+   y el usuario no pidió movimiento reducido: sin JS todo es visible. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.6s var(--ease),
+      transform 0.6s var(--ease);
+  }
 
-.reveal.is-visible {
-  opacity: 1;
-  transform: none;
+  html.js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---------- Enlace "saltar al contenido" (accesibilidad) ---------- */
