@@ -35,6 +35,28 @@
   },
   "proyectos": [
     {
+      "slug": "nexus",
+      "titulo": "Nexus — Sistema centralizado de scripts empresariales",
+      "descripcion": "Sistema cliente-servidor que centraliza la distribución, versionamiento, ejecución y monitoreo de scripts Python empresariales (SAP, contabilidad, cartera). Backend FastAPI con 108+ endpoints, panel administrativo en Vue.js, launcher de escritorio y despliegue con Docker. Incluye autenticación JWT/RBAC, cifrado AES-256 y rate limiting.",
+      "tags": ["Python", "FastAPI", "Vue.js", "Docker", "MariaDB"],
+      "demo": "",
+      "repo": "",
+      "doc": "nexus",
+      "año": "2026",
+      "destacado": true
+    },
+    {
+      "slug": "physcalc-pro",
+      "titulo": "PhysCalc Pro — Calculadora de propiedades físicas",
+      "descripcion": "Calculadora web interactiva para análisis de propiedades físicas industriales: calor, temperatura, presión, caudal, energía potencial y eficiencia energética. Desarrollada como caso de estudio para TecnoIndustria S.A.S.",
+      "tags": ["HTML5", "CSS3", "JavaScript", "GitHub Pages"],
+      "demo": "https://fabianenriquesanchez.github.io/PhysCalcPro/",
+      "repo": "https://github.com/FabianEnriqueSanchez/PhysCalcPro",
+      "doc": "physcalc-pro",
+      "año": "2025",
+      "destacado": true
+    },
+    {
       "slug": "sistema-control",
       "titulo": "Sistema de control con Java y Arduino",
       "descripcion": "Sistema de control que integra software en Java con hardware Arduino para automatizar y optimizar procesos operativos internos.",
