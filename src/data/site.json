@@ -39,7 +39,7 @@
       "titulo": "Nexus — Sistema centralizado de scripts empresariales",
       "descripcion": "Sistema cliente-servidor que centraliza la distribución, versionamiento, ejecución y monitoreo de scripts Python empresariales (SAP, contabilidad, cartera). Backend FastAPI con 108+ endpoints, panel administrativo en Vue.js, launcher de escritorio y despliegue con Docker. Incluye autenticación JWT/RBAC, cifrado AES-256 y rate limiting.",
       "tags": ["Python", "FastAPI", "Vue.js", "Docker", "MariaDB"],
-      "demo": "",
+      "demo": "/demos/nexus",
       "repo": "",
       "doc": "nexus",
       "año": "2026",
