@@ -27,5 +27,5 @@ Thumbs.db
 # jetbrains setting folder
 .idea/
 
-# configuración local de Claude Code
-.claude/settings.local.json
+# configuración de Claude Code (no versionar)
+.claude/
