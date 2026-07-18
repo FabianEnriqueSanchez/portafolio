@@ -141,6 +141,35 @@ const secciones = [
           </details>
         </section>
 
+        <section class="tarjeta tarjeta-foto" aria-labelledby="titulo-foto">
+          <h2 id="titulo-foto" class="titulo-token">Foto de perfil</h2>
+          <p class="ayuda-token">
+            Reemplaza la foto que aparece en el <strong>encabezado</strong> y en la
+            sección <strong>«Sobre mí»</strong>. Sube un PNG o JPG (idealmente
+            vertical, tipo retrato); se optimiza automáticamente al publicar.
+            Usa el token de la sección «Acceso».
+          </p>
+          <div class="foto-fila">
+            <img
+              id="foto-preview"
+              class="foto-preview"
+              alt="Vista previa de la foto de perfil"
+            />
+            <div class="foto-controles">
+              <label class="campo-etiqueta" for="input-foto">Nueva foto</label>
+              <input
+                id="input-foto"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+              />
+              <p id="foto-info" class="campo-ayuda">Formatos: PNG o JPG · máx. 10 MB.</p>
+              <button id="btn-subir-foto" type="button" class="btn btn-primary"
+                >Subir y publicar foto</button
+              >
+            </div>
+          </div>
+        </section>
+
         <div class="acciones-datos">
           <button id="btn-recargar" type="button" class="btn btn-ghost"
             >Recargar desde GitHub</button
@@ -307,6 +336,43 @@ const secciones = [
     border-radius: var(--radius-sm);
     padding: 0.7rem 1rem;
     margin-top: 0.5rem;
+  }
+
+  /* ---------- Tarjeta de foto de perfil ---------- */
+  .pagina-admin .foto-fila {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pagina-admin .foto-preview {
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+    object-position: 50% 15%;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    flex-shrink: 0;
+  }
+
+  .pagina-admin .foto-controles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 220px;
+    flex: 1;
+  }
+
+  .pagina-admin .foto-controles input[type="file"] {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .pagina-admin .foto-controles .btn {
+    align-self: flex-start;
+    margin-top: 0.3rem;
   }
 
   .pagina-admin .tarjeta {
@@ -1236,6 +1302,133 @@ const secciones = [
 
   btnGuardar.addEventListener("click", () => void guardar());
   btnRecargar.addEventListener("click", () => void recargar());
+
+  /* ============================================================
+     Foto de perfil: sube/reemplaza src/assets/foto-perfil.png
+     directamente en GitHub. Es independiente del guardado de
+     site.json (archivo binario con su propio sha).
+     ============================================================ */
+  const RUTA_FOTO = "src/assets/foto-perfil.png";
+  const inputFoto = qs<HTMLInputElement>("#input-foto");
+  const fotoPreview = qs<HTMLImageElement>("#foto-preview");
+  const fotoInfo = qs<HTMLElement>("#foto-info");
+  const btnSubirFoto = qs<HTMLButtonElement>("#btn-subir-foto");
+  let fotoElegida: File | null = null;
+
+  function urlFoto(): string {
+    const a = estado.admin;
+    return `https://api.github.com/repos/${a.owner}/${a.repo}/contents/${RUTA_FOTO}`;
+  }
+
+  // Vista previa de la foto que hay ahora mismo en el repositorio.
+  function cargarFotoActual() {
+    const a = estado.admin;
+    fotoPreview.src = `https://raw.githubusercontent.com/${a.owner}/${a.repo}/${a.branch}/${RUTA_FOTO}?t=${Date.now()}`;
+  }
+  fotoPreview.addEventListener("error", () => {
+    fotoPreview.style.visibility = "hidden";
+  });
+
+  function leerBase64(archivo: File): Promise<string> {
+    return new Promise((resolver, rechazar) => {
+      const lector = new FileReader();
+      lector.onload = () => {
+        const res = String(lector.result);
+        const coma = res.indexOf(",");
+        resolver(coma >= 0 ? res.slice(coma + 1) : res);
+      };
+      lector.onerror = () => rechazar(new Error("No se pudo leer el archivo."));
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  inputFoto.addEventListener("change", () => {
+    const archivo = inputFoto.files?.[0] ?? null;
+    fotoElegida = archivo;
+    if (!archivo) return;
+    if (archivo.size > 10 * 1024 * 1024) {
+      anunciar("error", ["La imagen supera los 10 MB. Usa una más ligera."]);
+      inputFoto.value = "";
+      fotoElegida = null;
+      return;
+    }
+    const kb = Math.round(archivo.size / 1024);
+    fotoInfo.textContent = `${archivo.name} · ${
+      kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB"
+    }`;
+    fotoPreview.style.visibility = "visible";
+    fotoPreview.src = URL.createObjectURL(archivo);
+  });
+
+  async function obtenerShaFoto(token: string): Promise<string | null> {
+    const r = await fetch(`${urlFoto()}?ref=${estado.admin.branch}`, {
+      headers: cabeceras(token),
+      cache: "no-store",
+    });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(mensajeErrorApi(r.status));
+    const j = (await r.json()) as { sha: string };
+    return j.sha;
+  }
+
+  async function subirFoto() {
+    limpiarEstado();
+    const token = inputToken.value.trim();
+    if (!token) {
+      anunciar("error", [
+        "Pega tu token de GitHub en la sección «Acceso» para poder subir la foto.",
+      ]);
+      inputToken.focus();
+      return;
+    }
+    if (!fotoElegida) {
+      anunciar("error", ["Elige primero una imagen."]);
+      inputFoto.focus();
+      return;
+    }
+    const foco = document.activeElement;
+    btnSubirFoto.disabled = true;
+    const texto = btnSubirFoto.textContent;
+    btnSubirFoto.textContent = "Subiendo…";
+    try {
+      const base64 = await leerBase64(fotoElegida);
+      const sha = await obtenerShaFoto(token);
+      const cuerpo: Record<string, unknown> = {
+        message: "contenido: actualizar foto de perfil desde el admin",
+        content: base64,
+        branch: estado.admin.branch,
+      };
+      if (sha) cuerpo.sha = sha;
+      const r = await fetch(urlFoto(), {
+        method: "PUT",
+        headers: { ...cabeceras(token), "Content-Type": "application/json" },
+        body: JSON.stringify(cuerpo),
+      });
+      if (!r.ok) throw new Error(mensajeErrorApi(r.status));
+      const enlace = el("a", "", "ver el progreso en GitHub Actions");
+      enlace.href = `https://github.com/${estado.admin.owner}/${estado.admin.repo}/actions`;
+      enlace.target = "_blank";
+      enlace.rel = "noopener";
+      anunciar("exito", [
+        "Foto actualizada. GitHub Actions reconstruirá el sitio en unos 2 minutos: ",
+        enlace,
+        ".",
+      ]);
+      inputFoto.value = "";
+      fotoElegida = null;
+      fotoInfo.textContent = "Formatos: PNG o JPG · máx. 10 MB.";
+    } catch (error) {
+      anunciar("error", [mensajeDeError(error)]);
+    } finally {
+      btnSubirFoto.disabled = false;
+      btnSubirFoto.textContent = texto;
+      if (foco === btnSubirFoto && document.activeElement === document.body)
+        btnSubirFoto.focus();
+    }
+  }
+
+  btnSubirFoto.addEventListener("click", () => void subirFoto());
+  cargarFotoActual();
   btnDescargar.addEventListener("click", descargar);
   formulario.addEventListener("submit", (evento) => evento.preventDefault());
 
