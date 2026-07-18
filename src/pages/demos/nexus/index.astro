@@ -4,66 +4,85 @@ import Header from "../../../components/Header.astro";
 import Footer from "../../../components/Footer.astro";
 import { withBase } from "../../../lib/utils";
 
-// Ítems de navegación del panel. Los tres primeros son funcionales; el
-// resto se muestran atenuados (no incluidos en la simulación). La lógica
-// vive en el <script> del final (mismos ids en data-vista / data-nav).
-const navegacion = [
-  { id: "dashboard", texto: "Panel", activo: true, funcional: true },
-  { id: "scripts", texto: "Scripts", activo: false, funcional: true },
-  { id: "ejecuciones", texto: "Ejecuciones", activo: false, funcional: true },
-  { id: "usuarios", texto: "Usuarios", activo: false, funcional: false },
-  { id: "secretos", texto: "Secretos", activo: false, funcional: false },
-  { id: "config", texto: "Configuración", activo: false, funcional: false },
+// Íconos (Lucide, líneas). Se inyectan con set:html dentro de un <svg> común.
+const ICO = {
+  home: `<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
+  user: `<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+  users: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  script: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m7 9 3 3-3 3"/><line x1="13" y1="15" x2="17" y2="15"/>`,
+  shield: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/>`,
+  list: `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
+  play: `<polygon points="5 3 19 12 5 21 5 3"/>`,
+  info: `<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>`,
+  lock: `<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
+  book: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`,
+  monitor: `<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>`,
+  settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+  alert: `<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+};
+
+// Navegación fiel al panel real (dos grupos). funcional=true conmuta de vista;
+// el resto muestran un aviso "no incluido en la demo" sin romper el aspecto.
+interface ItemNav {
+  id: string;
+  texto: string;
+  icono: string;
+  funcional: boolean;
+  tono?: string;
+}
+const NAV_PRINCIPAL: ItemNav[] = [
+  { id: "dashboard", texto: "Dashboard", icono: ICO.home, funcional: true },
+  { id: "usuarios", texto: "Usuarios", icono: ICO.user, funcional: true },
+  { id: "grupos", texto: "Grupos", icono: ICO.users, funcional: false },
+  { id: "scripts", texto: "Scripts", icono: ICO.script, funcional: true },
+  { id: "permisos", texto: "Permisos", icono: ICO.shield, funcional: false },
+  { id: "categorias", texto: "Categorías", icono: ICO.list, funcional: false },
+  { id: "logs-ejecucion", texto: "Logs Ejecución", icono: ICO.play, funcional: true },
+  { id: "logs-acceso", texto: "Logs Acceso", icono: ICO.info, funcional: false },
+];
+const NAV_ADMIN: ItemNav[] = [
+  { id: "secretos", texto: "Secretos", icono: ICO.lock, funcional: false, tono: "amber" },
+  { id: "librerias", texto: "Librerías", icono: ICO.book, funcional: false },
+  { id: "sesiones", texto: "Sesiones", icono: ICO.monitor, funcional: false },
+  { id: "config", texto: "Configuración", icono: ICO.settings, funcional: false },
+  { id: "crash", texto: "Crash Reports", icono: ICO.alert, funcional: false },
 ];
 ---
 
 <BaseLayout
   titulo="Panel administrativo de Nexus — Demo interactiva"
-  descripcion="Simulación interactiva del panel administrativo de Nexus: dashboard con métricas, gestión de scripts empresariales y ejecución simulada con registro de logs, directamente en tu navegador."
+  descripcion="Simulación interactiva del panel administrativo de Nexus: dashboard con métricas, gestión de usuarios y scripts empresariales, y ejecución simulada con registro de logs, directamente en tu navegador."
 >
   <Header />
 
   <main id="contenido" class="demo-nexus" tabindex="-1">
-    <!-- Región que anuncia acciones a lectores de pantalla -->
     <div id="anuncio" class="visualmente-oculto" aria-live="polite"></div>
 
     <section class="demo-hero">
       <div class="container reveal">
         <p class="eyebrow">Demo interactiva</p>
-        <h1 class="hero-title">Panel administrativo de Nexus — simulación</h1>
+        <h1 class="hero-title">Panel administrativo de Nexus</h1>
         <p class="hero-lead">
-          Así se ve la gestión del sistema desde el lado del equipo de TI:
-          métricas, catálogo de scripts empresariales por categoría y ejecución
-          con registro de logs. El panel real (Vue.js + FastAPI) es interno;
-          esta simulación reproduce su interfaz y su flujo.
+          Reproducción de la interfaz real del panel (Vue.js + FastAPI) con la
+          que el equipo de TI gestiona el sistema: métricas en tiempo real,
+          usuarios y roles, catálogo de scripts empresariales por categoría y
+          ejecución con registro de logs. El backend real es interno; esta
+          simulación reproduce su interfaz y su flujo.
         </p>
         <p class="aviso-demo">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M12 16v-4M12 8h.01"></path>
           </svg>
           <span>
             Datos de muestra: todo vive solo en esta pestaña y se reinicia al
-            recargar. No se ejecuta ningún script real.
+            recargar. No se ejecuta ningún script real ni se toca ningún dato de la empresa.
           </span>
         </p>
         <div class="hero-enlaces">
-          <a class="btn btn-ghost" href={withBase("/") + "#proyectos"}
-            >← Volver a proyectos</a
-          >
-          <a class="btn btn-primary" href={withBase("docs/nexus/")}
-            >Documentación</a
-          >
+          <a class="btn btn-ghost" href={withBase("/") + "#proyectos"}>← Volver a proyectos</a>
+          <a class="btn btn-primary" href={withBase("docs/nexus/")}>Documentación</a>
+          <button type="button" class="btn btn-ghost btn-reiniciar" data-rol="reiniciar">↻ Reiniciar datos</button>
         </div>
       </div>
     </section>
@@ -73,184 +92,305 @@ const navegacion = [
         <div class="app-shell reveal" role="application" aria-label="Panel administrativo simulado de Nexus">
           <!-- ===== Sidebar ===== -->
           <aside class="app-sidebar" aria-label="Navegación del panel">
-            <div class="marca">
-              <span class="marca-punto" aria-hidden="true"></span>
-              <span class="marca-nombre">Nexus</span>
+            <div class="sb-marca">
+              <span class="sb-logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+              </span>
+              <span class="sb-marca-texto">
+                <strong>Nexus</strong>
+                <small>Admin Panel</small>
+              </span>
+              <button type="button" class="sb-colapsar" data-rol="colapsar" aria-label="Contraer o expandir el menú">«</button>
             </div>
-            <nav class="nav" aria-label="Secciones">
+
+            <nav class="sb-nav" aria-label="Secciones">
               <ul role="list">
                 {
-                  navegacion.map((item) => (
+                  NAV_PRINCIPAL.map((item) => (
                     <li>
-                      {item.funcional ? (
-                        <button
-                          type="button"
-                          class={`nav-item ${item.activo ? "es-activo" : ""}`}
-                          data-nav={item.id}
-                          aria-current={item.activo ? "page" : "false"}
-                        >
-                          <span class="nav-icono" aria-hidden="true" data-ico={item.id} />
-                          {item.texto}
-                        </button>
-                      ) : (
-                        <span
-                          class="nav-item es-inactivo"
-                          aria-disabled="true"
-                          title="No incluido en la demo"
-                        >
-                          <span class="nav-icono" aria-hidden="true" data-ico={item.id} />
-                          {item.texto}
-                          <span class="nav-pill">demo</span>
+                      <button
+                        type="button"
+                        class={`nav-item ${item.id === "dashboard" ? "es-activo" : ""}`}
+                        data-nav={item.funcional ? item.id : null}
+                        data-seccion={item.funcional ? null : item.texto}
+                        aria-current={item.id === "dashboard" ? "page" : "false"}
+                      >
+                        <span class="nav-ico" data-tono={item.tono ?? null} aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icono} />
                         </span>
-                      )}
+                        <span class="nav-texto">{item.texto}</span>
+                      </button>
+                    </li>
+                  ))
+                }
+              </ul>
+
+              <p class="sb-grupo-label">Administración</p>
+              <ul role="list">
+                {
+                  NAV_ADMIN.map((item) => (
+                    <li>
+                      <button
+                        type="button"
+                        class="nav-item"
+                        data-seccion={item.texto}
+                      >
+                        <span class="nav-ico" data-tono={item.tono ?? null} aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icono} />
+                        </span>
+                        <span class="nav-texto">{item.texto}</span>
+                      </button>
                     </li>
                   ))
                 }
               </ul>
             </nav>
-            <div class="sidebar-pie">
-              <button type="button" class="btn-reiniciar" data-rol="reiniciar">
-                ↻ Reiniciar datos
-              </button>
+
+            <div class="sb-user">
+              <span class="sb-avatar" aria-hidden="true">A</span>
+              <span class="sb-user-datos">
+                <strong>Administrador Local</strong>
+                <small>Admin</small>
+              </span>
+              <button type="button" class="sb-salir" data-rol="salir">Salir</button>
             </div>
           </aside>
 
           <!-- ===== Zona principal ===== -->
           <div class="app-main">
-            <!-- Topbar -->
             <header class="app-topbar">
-              <div class="buscador" data-rol="buscador-topbar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7"></circle>
-                  <path d="m21 21-4.3-4.3"></path>
-                </svg>
-                <label class="visualmente-oculto" for="buscar-topbar">Buscar scripts</label>
-                <input
-                  type="search"
-                  id="buscar-topbar"
-                  placeholder="Buscar scripts…"
-                  autocomplete="off"
-                  data-rol="buscar"
-                />
-              </div>
-              <div class="usuario">
-                <span class="usuario-avatar" aria-hidden="true">A</span>
-                <span class="usuario-datos">
-                  <span class="usuario-nombre">Administrador</span>
-                  <span class="usuario-rol">admin</span>
-                </span>
+              <nav class="breadcrumb" data-rol="breadcrumb" aria-label="Ruta"><span class="bc-actual">Inicio</span></nav>
+              <div class="tb-user">
+                <span class="tb-user-nombre">Administrador Local</span>
+                <span class="tb-badge">admin</span>
               </div>
             </header>
 
-            <!-- ===== Vista: Dashboard ===== -->
-            <section class="vista es-activa" data-vista="dashboard" tabindex="-1" aria-label="Panel de control">
-              <h2 class="vista-titulo">Panel de control</h2>
+            <div class="app-scroll">
+              <!-- ===== Vista: Dashboard ===== -->
+              <section class="vista es-activa" data-vista="dashboard" tabindex="-1" aria-label="Dashboard">
+                <h2 class="vista-titulo">Dashboard</h2>
 
-              <div class="stats">
-                <article class="stat">
-                  <span class="stat-icono" data-tono="azul" aria-hidden="true">▤</span>
-                  <span class="stat-valor" data-rol="stat-scripts">0</span>
-                  <span class="stat-label">Scripts publicados</span>
-                </article>
-                <article class="stat">
-                  <span class="stat-icono" data-tono="verde" aria-hidden="true">◑</span>
-                  <span class="stat-valor" data-rol="stat-usuarios">8</span>
-                  <span class="stat-label">Usuarios activos</span>
-                </article>
-                <article class="stat">
-                  <span class="stat-icono" data-tono="cian" aria-hidden="true">▶</span>
-                  <span class="stat-valor" data-rol="stat-ejec">0</span>
-                  <span class="stat-label">Ejecuciones hoy</span>
-                </article>
-              </div>
-
-              <div class="panel grafico-panel">
-                <div class="panel-cabecera">
-                  <h3 class="panel-titulo">Ejecuciones · últimos 7 días</h3>
-                  <span class="chip-version">simulado</span>
+                <div class="stats">
+                  <article class="stat">
+                    <span class="stat-icono" data-tono="navy" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.user} />
+                    </span>
+                    <span class="stat-cont">
+                      <span class="stat-label">Usuarios Totales</span>
+                      <span class="stat-valor" data-rol="stat-usuarios">0</span>
+                    </span>
+                  </article>
+                  <article class="stat">
+                    <span class="stat-icono" data-tono="green" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.script} />
+                    </span>
+                    <span class="stat-cont">
+                      <span class="stat-label">Scripts Activos</span>
+                      <span class="stat-valor" data-rol="stat-scripts">0</span>
+                    </span>
+                  </article>
+                  <article class="stat">
+                    <span class="stat-icono" data-tono="blue" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.play} />
+                    </span>
+                    <span class="stat-cont">
+                      <span class="stat-label">Ejecuciones Hoy</span>
+                      <span class="stat-valor" data-rol="stat-ejec">0</span>
+                    </span>
+                  </article>
+                  <article class="stat">
+                    <span class="stat-icono" data-tono="red" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.alert} />
+                    </span>
+                    <span class="stat-cont">
+                      <span class="stat-label">Errores Hoy</span>
+                      <span class="stat-valor" data-rol="stat-errores">0</span>
+                    </span>
+                  </article>
                 </div>
-                <div class="grafico-wrap" data-rol="grafico-wrap">
-                  <canvas data-rol="grafico" role="img" aria-label="Gráfico de barras de ejecuciones diarias de la última semana"></canvas>
-                </div>
-              </div>
 
-              <div class="panel">
-                <div class="panel-cabecera">
-                  <h3 class="panel-titulo">Scripts recientes</h3>
-                  <button type="button" class="enlace-vista" data-nav="scripts">Ver todos →</button>
+                <div class="panel grafico-panel">
+                  <div class="panel-cabecera">
+                    <h3 class="panel-titulo">Ejecuciones — Últimos 7 Días</h3>
+                  </div>
+                  <div class="grafico-wrap" data-rol="grafico-wrap">
+                    <canvas data-rol="grafico" role="img" aria-label="Gráfico de barras de ejecuciones diarias de la última semana"></canvas>
+                  </div>
                 </div>
-                <div class="tabla-scroll">
-                  <table class="tabla" data-rol="tabla-recientes">
-                    <thead>
-                      <tr><th scope="col">Script</th><th scope="col">Categoría</th><th scope="col">Versión</th><th scope="col">Estado</th></tr>
-                    </thead>
-                    <tbody data-rol="cuerpo-recientes"></tbody>
-                  </table>
+
+                <div class="grid-2">
+                  <div class="panel">
+                    <div class="panel-cabecera"><h3 class="panel-titulo">Top Scripts</h3></div>
+                    <div class="tabla-scroll">
+                      <table class="tabla">
+                        <thead>
+                          <tr>
+                            <th scope="col">Script</th>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Ejecuciones</th>
+                            <th scope="col">Tasa de Éxito</th>
+                          </tr>
+                        </thead>
+                        <tbody data-rol="cuerpo-top-scripts"></tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <div class="panel-cabecera"><h3 class="panel-titulo">Top Usuarios</h3></div>
+                    <div class="tabla-scroll">
+                      <table class="tabla">
+                        <thead>
+                          <tr>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Ejecuciones</th>
+                            <th scope="col">Última Ejecución</th>
+                          </tr>
+                        </thead>
+                        <tbody data-rol="cuerpo-top-usuarios"></tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <!-- ===== Vista: Scripts ===== -->
-            <section class="vista" data-vista="scripts" tabindex="-1" aria-label="Catálogo de scripts" hidden>
-              <h2 class="vista-titulo">Scripts</h2>
+              <!-- ===== Vista: Usuarios ===== -->
+              <section class="vista" data-vista="usuarios" tabindex="-1" aria-label="Usuarios" hidden>
+                <div class="vista-cabecera">
+                  <h2 class="vista-titulo">Usuarios</h2>
+                  <button type="button" class="btn-principal" data-seccion="Nuevo Usuario">+ Nuevo Usuario</button>
+                </div>
 
-              <div class="filtros">
+                <div class="filtros-fila">
+                  <div class="input-busca">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <label class="visualmente-oculto" for="buscar-usuario">Buscar usuario</label>
+                    <input type="search" id="buscar-usuario" placeholder="Buscar usuario…" autocomplete="off" data-rol="buscar-usuario" />
+                  </div>
+                  <label class="visualmente-oculto" for="filtro-rol">Filtrar por rol</label>
+                  <select class="select" id="filtro-rol" data-rol="filtro-rol">
+                    <option value="todos">Todos los roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Operador">Operador</option>
+                    <option value="Desarrollador">Desarrollador</option>
+                    <option value="Auditor">Auditor</option>
+                  </select>
+                  <label class="visualmente-oculto" for="filtro-estado">Filtrar por estado</label>
+                  <select class="select" id="filtro-estado" data-rol="filtro-estado">
+                    <option value="todos">Todos los estados</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
+                </div>
+
+                <div class="panel">
+                  <div class="tabla-scroll">
+                    <table class="tabla tabla-usuarios">
+                      <thead>
+                        <tr>
+                          <th scope="col">Usuario</th>
+                          <th scope="col">Nombre Completo</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Rol</th>
+                          <th scope="col">Departamento</th>
+                          <th scope="col">Estado</th>
+                          <th scope="col">Último Login</th>
+                          <th scope="col" class="col-accion">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody data-rol="cuerpo-usuarios"></tbody>
+                    </table>
+                    <p class="sin-resultados" data-rol="sin-usuarios" hidden>No hay usuarios que coincidan con el filtro.</p>
+                  </div>
+                  <div class="paginacion">
+                    <span class="pag-info" data-rol="pag-info">Mostrando 0 de 0</span>
+                    <div class="pag-botones">
+                      <button type="button" class="pag-btn" disabled>Anterior</button>
+                      <button type="button" class="pag-btn es-activo">1</button>
+                      <button type="button" class="pag-btn" disabled>Siguiente</button>
+                    </div>
+                    <span class="pag-tam"><span class="pag-tam-num">20</span> por página</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ===== Vista: Scripts ===== -->
+              <section class="vista" data-vista="scripts" tabindex="-1" aria-label="Scripts" hidden>
+                <div class="vista-cabecera">
+                  <h2 class="vista-titulo">Scripts</h2>
+                </div>
+
+                <div class="filtros-fila">
+                  <div class="input-busca">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <label class="visualmente-oculto" for="buscar-script">Buscar script</label>
+                    <input type="search" id="buscar-script" placeholder="Buscar script…" autocomplete="off" data-rol="buscar-script" />
+                  </div>
+                </div>
+
                 <div class="chips-cat" role="group" aria-label="Filtrar por categoría" data-rol="chips-cat"></div>
-              </div>
 
-              <div class="panel">
-                <div class="tabla-scroll">
-                  <table class="tabla tabla-scripts">
-                    <thead>
-                      <tr>
-                        <th scope="col">Script</th>
-                        <th scope="col">Categoría</th>
-                        <th scope="col">Versión</th>
-                        <th scope="col">Estado</th>
-                        <th scope="col" class="col-accion">Acción</th>
-                      </tr>
-                    </thead>
-                    <tbody data-rol="cuerpo-scripts"></tbody>
-                  </table>
-                  <p class="sin-resultados" data-rol="sin-resultados" hidden>
-                    No hay scripts que coincidan con el filtro.
-                  </p>
+                <div class="panel">
+                  <div class="tabla-scroll">
+                    <table class="tabla tabla-scripts">
+                      <thead>
+                        <tr>
+                          <th scope="col">Script</th>
+                          <th scope="col">Categoría</th>
+                          <th scope="col">Versión</th>
+                          <th scope="col">Estado</th>
+                          <th scope="col" class="col-accion">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody data-rol="cuerpo-scripts"></tbody>
+                    </table>
+                    <p class="sin-resultados" data-rol="sin-scripts" hidden>No hay scripts que coincidan con el filtro.</p>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <!-- ===== Vista: Ejecuciones ===== -->
-            <section class="vista" data-vista="ejecuciones" tabindex="-1" aria-label="Registro de ejecuciones" hidden>
-              <h2 class="vista-titulo">Ejecuciones</h2>
-              <div class="panel">
-                <div class="tabla-scroll">
-                  <table class="tabla">
-                    <thead>
-                      <tr>
-                        <th scope="col">Script</th>
-                        <th scope="col">Usuario</th>
-                        <th scope="col">Inicio</th>
-                        <th scope="col">Duración</th>
-                        <th scope="col">Resultado</th>
-                      </tr>
-                    </thead>
-                    <tbody data-rol="cuerpo-ejec"></tbody>
-                  </table>
+              <!-- ===== Vista: Logs Ejecución ===== -->
+              <section class="vista" data-vista="logs-ejecucion" tabindex="-1" aria-label="Logs de ejecución" hidden>
+                <div class="vista-cabecera">
+                  <h2 class="vista-titulo">Logs Ejecución</h2>
                 </div>
-              </div>
-            </section>
+                <div class="panel">
+                  <div class="tabla-scroll">
+                    <table class="tabla">
+                      <thead>
+                        <tr>
+                          <th scope="col">Script</th>
+                          <th scope="col">Usuario</th>
+                          <th scope="col">Inicio</th>
+                          <th scope="col">Duración</th>
+                          <th scope="col">Resultado</th>
+                        </tr>
+                      </thead>
+                      <tbody data-rol="cuerpo-ejec"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
 
-        <!-- ===== Consola de ejecución (modal ligero) ===== -->
+        <!-- ===== Consola de ejecución ===== -->
         <div class="consola-overlay" data-rol="consola-overlay" hidden>
-          <div
-            class="consola"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="consola-titulo"
-            data-rol="consola"
-          >
+          <div class="consola" role="dialog" aria-modal="true" aria-labelledby="consola-titulo" data-rol="consola">
             <div class="consola-cabecera">
               <h3 id="consola-titulo" class="consola-titulo">
                 Ejecutando <span data-rol="consola-script">script</span>
@@ -261,6 +401,8 @@ const navegacion = [
             <div class="consola-pie" data-rol="consola-pie"></div>
           </div>
         </div>
+
+        <div class="demo-toast" data-rol="toast" role="status" aria-live="polite" hidden></div>
 
         <noscript>
           <p class="aviso-nojs">
@@ -278,42 +420,51 @@ const navegacion = [
 
 <style is:global>
   /* ============================================================
-     Demo Nexus — panel administrativo simulado.
+     Demo Nexus — panel administrativo simulado, fiel a la app real.
      Todo el CSS va prefijado por .demo-nexus porque parte del DOM
-     (tablas, logs, chips) se genera desde el <script> y Astro solo
-     aplica el hash de scope al markup estático.
-     Tokens de marca locales sobre los tokens globales del sitio.
+     (tablas, chips, logs) se genera desde el <script>.
+     El sidebar mantiene su paleta navy fija (como la app real);
+     el área de contenido se adapta al tema del portafolio.
      ============================================================ */
   .demo-nexus {
-    --nx-azul: #1b3a5c;
-    --nx-azul-claro: #4a90d9;
-    --nx-panel-bg: #f5f7fa;
-    --nx-side-bg: #14304c;
-    --nx-side-text: #cdd9e5;
-    --nx-side-activo: #4a90d9;
-    --nx-ok: #2ecc71;
-    --nx-warn: #f39c12;
-    --nx-err: #e74c3c;
+    --nx-side-bg: #1e2a3d;
+    --nx-side-activo: #2c4a6e;
+    --nx-side-hover: rgba(255, 255, 255, 0.06);
+    --nx-side-text: #c3cfe0;
+    --nx-side-icono: #8ea1bb;
+    --nx-side-label: #61728c;
+    --nx-navy: #1e3a5c;
+    --nx-blue: #4a90d9;
+    --nx-green: #22a565;
+    --nx-red: #e0544f;
+    --nx-amber: #eab308;
+    --nx-content-bg: #f5f7fa;
+    --nx-badge-admin-bg: #ece7fb;
+    --nx-badge-admin-tx: #7c4ddb;
+    --nx-badge-ok-bg: #dcfce7;
+    --nx-badge-ok-tx: #15803d;
+    --nx-badge-off-bg: #f1f5f9;
+    --nx-badge-off-tx: #64748b;
   }
   :root[data-theme="dark"] .demo-nexus {
-    --nx-azul: #4a90d9;
-    --nx-azul-claro: #6ba8e5;
-    --nx-panel-bg: #12100e;
-    --nx-side-bg: #101f30;
-    --nx-side-text: #b9c6d4;
+    --nx-side-bg: #141f30;
+    --nx-content-bg: var(--bg);
+    --nx-badge-admin-bg: rgba(124, 77, 219, 0.2);
+    --nx-badge-admin-tx: #c4b5fd;
+    --nx-badge-ok-bg: rgba(34, 165, 101, 0.18);
+    --nx-badge-ok-tx: #4ade80;
+    --nx-badge-off-bg: rgba(148, 163, 184, 0.16);
+    --nx-badge-off-tx: #94a3b8;
   }
 
+  /* ---------- Hero ---------- */
   .demo-nexus .demo-hero {
     padding-block: clamp(2.5rem, 6vw, 4rem) clamp(1.5rem, 3vw, 2rem);
   }
-  .demo-nexus .hero-title {
-    font-size: var(--text-3xl);
-    max-width: 20ch;
-    margin-top: 0.6rem;
-  }
+  .demo-nexus .hero-title { font-size: var(--text-3xl); margin-top: 0.6rem; }
   .demo-nexus .hero-lead {
     color: var(--muted);
-    max-width: 60ch;
+    max-width: 64ch;
     margin-top: 1rem;
     font-size: var(--text-lg);
   }
@@ -328,34 +479,31 @@ const navegacion = [
     background: var(--bg-soft);
     color: var(--muted);
     font-size: var(--text-sm);
-    max-width: 60ch;
+    max-width: 64ch;
   }
-  .demo-nexus .aviso-demo svg {
-    flex-shrink: 0;
-    color: var(--accent);
-  }
+  .demo-nexus .aviso-demo svg { flex-shrink: 0; color: var(--accent); }
   .demo-nexus .hero-enlaces {
     display: flex;
     flex-wrap: wrap;
     gap: 0.8rem;
     margin-top: 1.6rem;
   }
+  .demo-nexus .btn-reiniciar { cursor: pointer; }
 
-  .demo-nexus .demo-cuerpo {
-    padding-bottom: clamp(4rem, 8vw, 6rem);
-  }
+  .demo-nexus .demo-cuerpo { padding-bottom: clamp(4rem, 8vw, 6rem); }
 
   /* ---------- Shell ---------- */
   .demo-nexus .app-shell {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    min-height: 620px;
+    grid-template-columns: 244px 1fr;
+    height: 660px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
     background: var(--surface);
   }
+  .demo-nexus .app-shell.compacta { grid-template-columns: 68px 1fr; }
 
   /* ---------- Sidebar ---------- */
   .demo-nexus .app-sidebar {
@@ -363,32 +511,73 @@ const navegacion = [
     flex-direction: column;
     background: var(--nx-side-bg);
     color: var(--nx-side-text);
-    padding: 1.2rem 0.9rem;
+    min-width: 0;
   }
-  .demo-nexus .marca {
+  .demo-nexus .sb-marca {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.4rem 0.6rem 1.2rem;
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 1.35rem;
-    color: #fff;
-    letter-spacing: -0.02em;
+    gap: 0.7rem;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
-  .demo-nexus .marca-punto {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    background: var(--nx-azul-claro);
-    box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.25);
+  .demo-nexus .sb-logo {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: rgba(74, 144, 217, 0.18);
+    color: #7fb4ec;
   }
-  .demo-nexus .nav ul {
-    list-style: none;
-    padding: 0;
+  .demo-nexus .sb-logo svg { width: 19px; height: 19px; }
+  .demo-nexus .sb-marca-texto {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    line-height: 1.15;
+    min-width: 0;
+  }
+  .demo-nexus .sb-marca-texto strong {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .demo-nexus .sb-marca-texto small { color: var(--nx-side-icono); font-size: 0.72rem; }
+  .demo-nexus .sb-colapsar {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--nx-side-icono);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+    border-radius: 5px;
+  }
+  .demo-nexus .sb-colapsar:hover { color: #fff; background: var(--nx-side-hover); }
+
+  .demo-nexus .sb-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.7rem 0.7rem 1rem;
+  }
+  .demo-nexus .sb-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .demo-nexus .sb-grupo-label {
+    margin: 1rem 0 0.4rem;
+    padding: 0 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nx-side-label);
   }
   .demo-nexus .nav-item {
     display: flex;
@@ -396,193 +585,194 @@ const navegacion = [
     gap: 0.7rem;
     width: 100%;
     text-align: left;
-    padding: 0.6rem 0.7rem;
-    border-radius: var(--radius-sm);
+    padding: 0.58rem 0.65rem;
+    border-radius: 8px;
     border: none;
     background: transparent;
     color: var(--nx-side-text);
     font-size: var(--text-sm);
     font-family: inherit;
     cursor: pointer;
+    white-space: nowrap;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
   }
-  .demo-nexus button.nav-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-  }
-  .demo-nexus .nav-item.es-activo {
-    background: var(--nx-side-activo);
-    color: #fff;
-    font-weight: 560;
-  }
-  .demo-nexus .nav-item.es-inactivo {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  .demo-nexus .nav-icono {
-    width: 18px;
-    height: 18px;
-    border-radius: 5px;
-    background: currentColor;
-    opacity: 0.55;
+  .demo-nexus .nav-item:hover { background: var(--nx-side-hover); color: #fff; }
+  .demo-nexus .nav-item.es-activo { background: var(--nx-side-activo); color: #fff; }
+  .demo-nexus .nav-ico {
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
+    color: var(--nx-side-icono);
   }
-  .demo-nexus .nav-item.es-activo .nav-icono {
-    opacity: 0.9;
+  .demo-nexus .nav-item:hover .nav-ico,
+  .demo-nexus .nav-item.es-activo .nav-ico { color: #fff; }
+  .demo-nexus .nav-ico[data-tono="amber"] { color: var(--nx-amber); }
+  .demo-nexus .nav-ico svg { width: 18px; height: 18px; }
+  .demo-nexus .nav-texto { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+  .demo-nexus .sb-user {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
-  .demo-nexus .nav-pill {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.1rem 0.4rem;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-  }
-  .demo-nexus .sidebar-pie {
-    margin-top: auto;
-    padding-top: 1rem;
-  }
-  .demo-nexus .btn-reiniciar {
-    width: 100%;
-    padding: 0.55rem 0.7rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: transparent;
-    color: var(--nx-side-text);
-    font-size: var(--text-xs);
-    font-family: inherit;
-    cursor: pointer;
-    transition: background var(--dur) var(--ease);
-  }
-  .demo-nexus .btn-reiniciar:hover {
-    background: rgba(255, 255, 255, 0.1);
+  .demo-nexus .sb-avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--nx-blue);
     color: #fff;
+    font-weight: 600;
+    font-size: var(--text-sm);
   }
+  .demo-nexus .sb-user-datos {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+    flex: 1;
+  }
+  .demo-nexus .sb-user-datos strong {
+    color: #eaf0f7;
+    font-size: 0.82rem;
+    font-weight: 560;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .demo-nexus .sb-user-datos small { color: var(--nx-side-icono); font-size: 0.72rem; }
+  .demo-nexus .sb-salir {
+    border: none;
+    background: transparent;
+    color: var(--nx-side-icono);
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0.2rem 0.3rem;
+    border-radius: 5px;
+  }
+  .demo-nexus .sb-salir:hover { color: #fff; background: var(--nx-side-hover); }
+
+  /* Estado compacto: solo íconos */
+  .demo-nexus .app-shell.compacta .sb-marca-texto,
+  .demo-nexus .app-shell.compacta .nav-texto,
+  .demo-nexus .app-shell.compacta .sb-grupo-label,
+  .demo-nexus .app-shell.compacta .sb-user-datos,
+  .demo-nexus .app-shell.compacta .sb-salir { display: none; }
+  .demo-nexus .app-shell.compacta .nav-item { justify-content: center; padding-inline: 0.4rem; }
+  .demo-nexus .app-shell.compacta .sb-marca { justify-content: center; padding-inline: 0.4rem; }
+  .demo-nexus .app-shell.compacta .sb-colapsar { display: none; }
+  .demo-nexus .app-shell.compacta .sb-user { justify-content: center; }
 
   /* ---------- Main ---------- */
   .demo-nexus .app-main {
     display: flex;
     flex-direction: column;
-    background: var(--nx-panel-bg);
+    background: var(--nx-content-bg);
     min-width: 0;
-  }
-  :root[data-theme="dark"] .demo-nexus .app-main {
-    background: var(--bg);
   }
   .demo-nexus .app-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.85rem 1.4rem;
+    padding: 0.85rem 1.5rem;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
+    flex-shrink: 0;
   }
-  .demo-nexus .buscador {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
-    max-width: 360px;
-    padding: 0.5rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-soft);
+  .demo-nexus .breadcrumb {
+    font-size: var(--text-sm);
     color: var(--muted);
-  }
-  .demo-nexus .buscador input {
-    border: none;
-    background: transparent;
-    color: var(--text);
-    font-size: var(--text-sm);
-    width: 100%;
-    outline: none;
-  }
-  .demo-nexus .usuario {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.4rem;
   }
-  .demo-nexus .usuario-avatar {
-    width: 36px;
-    height: 36px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--nx-azul);
-    color: #fff;
-    font-weight: 600;
-    font-size: var(--text-sm);
-  }
-  .demo-nexus .usuario-datos {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-  }
-  .demo-nexus .usuario-nombre {
-    font-size: var(--text-sm);
-    font-weight: 560;
-    color: var(--text);
-  }
-  .demo-nexus .usuario-rol {
+  .demo-nexus .breadcrumb .bc-sep { color: var(--faint); }
+  .demo-nexus .breadcrumb .bc-actual { color: var(--text); font-weight: 500; }
+  .demo-nexus .tb-user { display: flex; align-items: center; gap: 0.6rem; }
+  .demo-nexus .tb-user-nombre { font-size: var(--text-sm); color: var(--text); }
+  .demo-nexus .tb-badge {
     font-family: var(--font-mono);
     font-size: 0.72rem;
-    color: var(--faint);
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: var(--nx-badge-admin-bg);
+    color: var(--nx-badge-admin-tx);
+    font-weight: 560;
   }
 
+  .demo-nexus .app-scroll { flex: 1; overflow-y: auto; }
+
   /* ---------- Vistas ---------- */
-  .demo-nexus .vista {
-    padding: 1.5rem 1.4rem 2rem;
-    overflow: auto;
+  .demo-nexus .vista { padding: 1.6rem 1.5rem 2.2rem; }
+  .demo-nexus .vista[hidden] { display: none; }
+  .demo-nexus .vista-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.3rem;
   }
-  .demo-nexus .vista[hidden] {
-    display: none;
+  .demo-nexus .vista-titulo { font-size: var(--text-2xl); margin: 0 0 1.3rem; }
+  .demo-nexus .vista-cabecera .vista-titulo { margin: 0; }
+
+  .demo-nexus .btn-principal {
+    border: none;
+    background: var(--nx-navy);
+    color: #fff;
+    font-size: var(--text-sm);
+    font-weight: 560;
+    font-family: inherit;
+    padding: 0.6rem 1.1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: filter var(--dur) var(--ease);
   }
-  .demo-nexus .vista-titulo {
-    font-size: var(--text-xl);
-    margin-bottom: 1.2rem;
-  }
+  .demo-nexus .btn-principal:hover { filter: brightness(1.15); }
+  :root[data-theme="dark"] .demo-nexus .btn-principal { background: var(--nx-blue); }
 
   /* Stat cards */
   .demo-nexus .stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin-bottom: 1.4rem;
   }
   .demo-nexus .stat {
     display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+    align-items: center;
+    gap: 0.9rem;
     padding: 1.1rem 1.2rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
   }
   .demo-nexus .stat-icono {
-    width: 34px;
-    height: 34px;
     display: grid;
     place-items: center;
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    margin-bottom: 0.3rem;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    color: #fff;
   }
-  .demo-nexus .stat-icono[data-tono="azul"] { background: rgba(27, 58, 92, 0.12); color: var(--nx-azul); }
-  .demo-nexus .stat-icono[data-tono="verde"] { background: rgba(46, 204, 113, 0.14); color: #1e8b4d; }
-  .demo-nexus .stat-icono[data-tono="cian"] { background: rgba(74, 144, 217, 0.16); color: var(--nx-azul-claro); }
+  .demo-nexus .stat-icono svg { width: 22px; height: 22px; }
+  .demo-nexus .stat-icono[data-tono="navy"] { background: var(--nx-navy); }
+  .demo-nexus .stat-icono[data-tono="green"] { background: var(--nx-green); }
+  .demo-nexus .stat-icono[data-tono="blue"] { background: var(--nx-blue); }
+  .demo-nexus .stat-icono[data-tono="red"] { background: var(--nx-red); }
+  .demo-nexus .stat-cont { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+  .demo-nexus .stat-label { font-size: var(--text-sm); color: var(--muted); }
   .demo-nexus .stat-valor {
     font-family: var(--font-display);
     font-size: var(--text-2xl);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
-    line-height: 1;
-  }
-  .demo-nexus .stat-label {
-    font-size: var(--text-sm);
-    color: var(--muted);
+    line-height: 1.1;
   }
 
   /* Paneles */
@@ -593,122 +783,138 @@ const navegacion = [
     margin-bottom: 1.4rem;
     overflow: hidden;
   }
+  .demo-nexus .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+  .demo-nexus .grid-2 .panel { margin-bottom: 0; }
   .demo-nexus .panel-cabecera {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.9rem 1.1rem;
-    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.2rem;
   }
-  .demo-nexus .panel-titulo {
-    font-size: var(--text-base);
-    font-weight: 560;
-  }
-  .demo-nexus .chip-version {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--faint);
-    border: 1px solid var(--border);
-    padding: 0.15rem 0.5rem;
-    border-radius: 999px;
-  }
-  .demo-nexus .enlace-vista {
-    border: none;
-    background: transparent;
-    color: var(--accent);
-    font-size: var(--text-sm);
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .demo-nexus .enlace-vista:hover { text-decoration: underline; }
+  .demo-nexus .panel-titulo { font-size: var(--text-lg); font-weight: 600; }
 
   /* Gráfico */
-  .demo-nexus .grafico-wrap {
-    height: 200px;
-    padding: 1rem 1.1rem 1.2rem;
-  }
-  .demo-nexus .grafico-wrap canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
+  .demo-nexus .grafico-wrap { height: 220px; padding: 0 1.2rem 1.3rem; }
+  .demo-nexus .grafico-wrap canvas { width: 100%; height: 100%; display: block; }
 
   /* Tablas */
   .demo-nexus .tabla-scroll { overflow-x: auto; }
-  .demo-nexus .tabla {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--text-sm);
-  }
+  .demo-nexus .tabla { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
   .demo-nexus .tabla th {
     text-align: left;
-    padding: 0.7rem 1.1rem;
+    padding: 0.75rem 1.2rem;
     color: var(--faint);
-    font-weight: 560;
+    font-weight: 600;
     font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    border-bottom: 1px solid var(--border);
+    border-block: 1px solid var(--border);
     background: var(--bg-soft);
     white-space: nowrap;
   }
   .demo-nexus .tabla td {
-    padding: 0.75rem 1.1rem;
+    padding: 0.8rem 1.2rem;
     border-bottom: 1px solid var(--border);
     color: var(--text);
     vertical-align: middle;
+    white-space: nowrap;
   }
   .demo-nexus .tabla tbody tr:last-child td { border-bottom: none; }
   .demo-nexus .tabla tbody tr:hover td { background: var(--bg-soft); }
-  .demo-nexus .script-nombre {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    color: var(--text);
-  }
+  .demo-nexus .script-nombre { font-family: var(--font-mono); font-size: 0.85rem; }
+  .demo-nexus .num { font-variant-numeric: tabular-nums; }
   .demo-nexus .col-accion { text-align: right; }
 
-  /* Badge de categoría */
-  .demo-nexus .cat {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--text-xs);
-    white-space: nowrap;
-  }
-  .demo-nexus .cat-punto {
-    width: 9px;
-    height: 9px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
+  /* Categoría / badges */
+  .demo-nexus .cat { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+  .demo-nexus .cat-punto { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
   .demo-nexus .badge {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 560;
-    padding: 0.18rem 0.55rem;
+    padding: 0.18rem 0.6rem;
     border-radius: 999px;
-    text-transform: capitalize;
   }
-  .demo-nexus .badge-activo { background: rgba(46, 204, 113, 0.15); color: #1e8b4d; }
+  .demo-nexus .badge-rol { background: var(--nx-badge-admin-bg); color: var(--nx-badge-admin-tx); }
+  .demo-nexus .badge-activo { background: var(--nx-badge-ok-bg); color: var(--nx-badge-ok-tx); }
+  .demo-nexus .badge-inactivo { background: var(--nx-badge-off-bg); color: var(--nx-badge-off-tx); }
   .demo-nexus .badge-borrador { background: rgba(243, 156, 18, 0.16); color: #b9770a; }
-  :root[data-theme="dark"] .demo-nexus .badge-activo { color: #4ade80; }
   :root[data-theme="dark"] .demo-nexus .badge-borrador { color: #fbbf24; }
 
-  /* Chips de filtro por categoría */
-  .demo-nexus .filtros { margin-bottom: 1.2rem; }
+  /* Acciones de fila (Usuarios) */
+  .demo-nexus .acciones-fila { display: inline-flex; gap: 0.5rem; justify-content: flex-end; }
+  .demo-nexus .accion-ico {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 7px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .demo-nexus .accion-ico:hover { border-color: var(--border-strong); color: var(--text); }
+  .demo-nexus .accion-ico[data-tono="rojo"]:hover { border-color: var(--nx-red); color: var(--nx-red); }
+  .demo-nexus .accion-ico svg { width: 15px; height: 15px; }
+
+  /* Filtros */
+  .demo-nexus .filtros-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+  .demo-nexus .input-busca {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 220px;
+    max-width: 420px;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--muted);
+  }
+  .demo-nexus .input-busca input {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: var(--text-sm);
+    width: 100%;
+    outline: none;
+  }
+  .demo-nexus .select {
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* Chips categoría */
   .demo-nexus .chips-cat {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-bottom: 1.2rem;
   }
   .demo-nexus .chip-cat {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -720,51 +926,76 @@ const navegacion = [
   }
   .demo-nexus .chip-cat:hover { border-color: var(--border-strong); color: var(--text); }
   .demo-nexus .chip-cat.es-activo {
-    border-color: var(--nx-azul-claro);
+    border-color: var(--nx-blue);
     color: var(--text);
     background: rgba(74, 144, 217, 0.1);
   }
 
-  /* Botón ejecutar en fila */
+  /* Botón ejecutar */
   .demo-nexus .btn-ejecutar {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.4rem 0.8rem;
+    padding: 0.4rem 0.85rem;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--nx-azul-claro);
+    border: 1px solid var(--nx-blue);
     background: transparent;
-    color: var(--nx-azul-claro);
+    color: var(--nx-blue);
     font-size: var(--text-xs);
     font-weight: 560;
     font-family: inherit;
     cursor: pointer;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
   }
-  .demo-nexus .btn-ejecutar:hover:not(:disabled) {
-    background: var(--nx-azul-claro);
-    color: #fff;
-  }
+  .demo-nexus .btn-ejecutar:hover:not(:disabled) { background: var(--nx-blue); color: #fff; }
   .demo-nexus .btn-ejecutar:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .demo-nexus .sin-resultados {
-    padding: 1.5rem 1.1rem;
+    padding: 1.6rem 1.2rem;
     color: var(--muted);
     font-size: var(--text-sm);
     text-align: center;
   }
 
-  /* Resultado (badge) en tabla de ejecuciones */
-  .demo-nexus .res {
-    display: inline-flex;
+  /* Resultado en logs */
+  .demo-nexus .res { display: inline-flex; align-items: center; gap: 0.35rem; font-size: var(--text-xs); font-weight: 560; }
+  .demo-nexus .res-ok { color: var(--nx-badge-ok-tx); }
+  .demo-nexus .res-err { color: var(--nx-red); }
+
+  /* Paginación */
+  .demo-nexus .paginacion {
+    display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: var(--text-xs);
-    font-weight: 560;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.2rem;
+    border-top: 1px solid var(--border);
+    font-size: var(--text-sm);
+    color: var(--muted);
   }
-  .demo-nexus .res-ok { color: #1e8b4d; }
-  .demo-nexus .res-err { color: var(--nx-err); }
-  :root[data-theme="dark"] .demo-nexus .res-ok { color: #4ade80; }
+  .demo-nexus .pag-botones { display: flex; gap: 0.4rem; }
+  .demo-nexus .pag-btn {
+    min-width: 34px;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 7px;
+    font-size: var(--text-sm);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .demo-nexus .pag-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .demo-nexus .pag-btn.es-activo { background: var(--nx-navy); color: #fff; border-color: var(--nx-navy); }
+  :root[data-theme="dark"] .demo-nexus .pag-btn.es-activo { background: var(--nx-blue); border-color: var(--nx-blue); }
+  .demo-nexus .pag-tam-num {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.15rem 0.5rem;
+    font-family: var(--font-mono);
+    color: var(--text);
+  }
 
   /* ---------- Consola ---------- */
   .demo-nexus .consola-overlay {
@@ -796,21 +1027,11 @@ const navegacion = [
     border-bottom: 1px solid #24384a;
     background: #13222f;
   }
-  .demo-nexus .consola-titulo {
-    font-size: var(--text-sm);
-    color: #e6eef5;
-    font-family: var(--font-mono);
-    font-weight: 500;
-  }
-  .demo-nexus .consola-titulo span { color: var(--nx-azul-claro); }
+  .demo-nexus .consola-titulo { font-size: var(--text-sm); color: #e6eef5; font-family: var(--font-mono); font-weight: 500; }
+  .demo-nexus .consola-titulo span { color: var(--nx-blue); }
   .demo-nexus .consola-cerrar {
-    border: none;
-    background: transparent;
-    color: #8ba0b3;
-    font-size: 1rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0.2rem;
+    border: none; background: transparent; color: #8ba0b3;
+    font-size: 1rem; cursor: pointer; line-height: 1; padding: 0.2rem;
   }
   .demo-nexus .consola-cerrar:hover { color: #fff; }
   .demo-nexus .consola-salida {
@@ -843,6 +1064,26 @@ const navegacion = [
   .demo-nexus .consola-pie.es-ok { color: #4fd48b; }
   .demo-nexus .consola-pie.es-err { color: #ff7a70; }
 
+  /* ---------- Toast ---------- */
+  .demo-nexus .demo-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%) translateY(0.5rem);
+    z-index: 70;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-sm);
+    background: var(--nx-side-bg);
+    color: #eaf0f7;
+    font-size: var(--text-sm);
+    box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+    pointer-events: none;
+  }
+  .demo-nexus .demo-toast.es-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .demo-nexus .demo-toast[hidden] { display: block; }
+
   .demo-nexus .aviso-nojs {
     padding: 1.2rem;
     border: 1px solid var(--border);
@@ -856,10 +1097,8 @@ const navegacion = [
   .demo-nexus .visualmente-oculto,
   .visualmente-oculto {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
@@ -868,24 +1107,17 @@ const navegacion = [
   }
 
   /* ---------- Responsive ---------- */
-  @media (max-width: 780px) {
-    .demo-nexus .app-shell {
-      grid-template-columns: 1fr;
-      min-height: 0;
-    }
-    .demo-nexus .app-sidebar {
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      padding: 0.7rem 0.9rem;
-    }
-    .demo-nexus .marca { padding: 0 0.6rem 0 0.2rem; }
-    .demo-nexus .nav { flex: 1; }
-    .demo-nexus .nav ul { flex-direction: row; flex-wrap: wrap; }
-    .demo-nexus .nav-pill { display: none; }
-    .demo-nexus .sidebar-pie { margin: 0; padding: 0; }
-    .demo-nexus .btn-reiniciar { width: auto; }
+  @media (max-width: 900px) {
+    .demo-nexus .stats { grid-template-columns: repeat(2, 1fr); }
+    .demo-nexus .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .demo-nexus .app-shell,
+    .demo-nexus .app-shell.compacta { grid-template-columns: 1fr; height: auto; }
+    .demo-nexus .app-sidebar { flex-direction: column; }
+    .demo-nexus .sb-nav { max-height: 200px; }
+    .demo-nexus .sb-colapsar { display: none; }
+    .demo-nexus .app-scroll { max-height: none; }
     .demo-nexus .stats { grid-template-columns: 1fr; }
   }
 </style>
@@ -898,29 +1130,31 @@ const navegacion = [
   // ============================================================
 
   type EstadoScript = "activo" | "borrador";
+  type EstadoUsuario = "Activo" | "Inactivo";
 
-  interface Categoria {
+  interface Categoria { nombre: string; color: string; }
+  interface Usuario {
+    usuario: string;
     nombre: string;
-    color: string;
+    email: string;
+    rol: string;
+    departamento: string;
+    estado: EstadoUsuario;
+    ultimoLogin: string;
   }
-
   interface ScriptDemo {
     id: string;
     nombre: string;
     categoria: string;
     version: string;
     estado: EstadoScript;
+    ejecuciones: number;
+    tasaExito: number | null;
   }
+  interface TopUsuario { usuario: string; nombre: string; ejecuciones: number; ultima: string; }
+  interface Ejecucion { script: string; usuario: string; inicio: string; duracion: string; ok: boolean; }
 
-  interface Ejecucion {
-    script: string;
-    usuario: string;
-    inicio: string;
-    duracion: string;
-    ok: boolean;
-  }
-
-  // Categorías reales del sistema (db/init.sql) con sus colores.
+  // Categorías reales del sistema con sus colores.
   const CATEGORIAS: Record<string, Categoria> = {
     TI: { nombre: "TI", color: "#1B3A5C" },
     Cartera: { nombre: "Cartera", color: "#2E7D32" },
@@ -933,28 +1167,53 @@ const navegacion = [
     Magento: { nombre: "Magento", color: "#E91E63" },
   };
 
+  const USUARIOS_SEMILLA: Usuario[] = [
+    { usuario: "admin", nombre: "Administrador Local", email: "admin@ardisa.com", rol: "Admin", departamento: "Sistemas", estado: "Activo", ultimoLogin: "18/07/26, 7:57 a. m." },
+    { usuario: "j.perez", nombre: "Juan Pérez", email: "j.perez@ardisa.com", rol: "Operador", departamento: "Cartera", estado: "Activo", ultimoLogin: "17/07/26, 4:20 p. m." },
+    { usuario: "m.gomez", nombre: "María Gómez", email: "m.gomez@ardisa.com", rol: "Operador", departamento: "Ventas", estado: "Activo", ultimoLogin: "18/07/26, 8:05 a. m." },
+    { usuario: "c.ruiz", nombre: "Carlos Ruiz", email: "c.ruiz@ardisa.com", rol: "Desarrollador", departamento: "TI", estado: "Activo", ultimoLogin: "18/07/26, 9:12 a. m." },
+    { usuario: "l.torres", nombre: "Laura Torres", email: "l.torres@ardisa.com", rol: "Auditor", departamento: "Contabilidad", estado: "Inactivo", ultimoLogin: "10/07/26, 11:40 a. m." },
+    { usuario: "a.rojas", nombre: "Ana Rojas", email: "a.rojas@ardisa.com", rol: "Operador", departamento: "Compras", estado: "Activo", ultimoLogin: "16/07/26, 2:03 p. m." },
+  ];
+
   const SCRIPTS_SEMILLA: ScriptDemo[] = [
-    { id: "s1", nombre: "backup_sap", categoria: "TI", version: "1.4.0", estado: "activo" },
-    { id: "s2", nombre: "aging_cartera", categoria: "Cartera", version: "2.0.1", estado: "activo" },
-    { id: "s3", nombre: "sync_magento", categoria: "Magento", version: "1.2.3", estado: "activo" },
-    { id: "s4", nombre: "reporte_ventas", categoria: "Ventas", version: "1.0.5", estado: "activo" },
-    { id: "s5", nombre: "cierre_contable", categoria: "Contabilidad", version: "3.1.0", estado: "activo" },
-    { id: "s6", nombre: "orden_compra", categoria: "Compras", version: "1.1.2", estado: "borrador" },
-    { id: "s7", nombre: "despacho_transporte", categoria: "Transporte", version: "1.0.0", estado: "activo" },
-    { id: "s8", nombre: "nomina_quincenal", categoria: "Nomina", version: "2.2.0", estado: "activo" },
-    { id: "s9", nombre: "campania_mailing", categoria: "Mercadeo", version: "1.3.1", estado: "borrador" },
+    { id: "s1", nombre: "backup_sap", categoria: "TI", version: "1.4.0", estado: "activo", ejecuciones: 342, tasaExito: 99.1 },
+    { id: "s2", nombre: "aging_cartera", categoria: "Cartera", version: "2.0.1", estado: "activo", ejecuciones: 289, tasaExito: 97.6 },
+    { id: "s3", nombre: "sync_magento", categoria: "Magento", version: "1.2.3", estado: "activo", ejecuciones: 512, tasaExito: 95.2 },
+    { id: "s4", nombre: "reporte_ventas", categoria: "Ventas", version: "1.0.5", estado: "activo", ejecuciones: 198, tasaExito: 100 },
+    { id: "s5", nombre: "cierre_contable", categoria: "Contabilidad", version: "3.1.0", estado: "activo", ejecuciones: 76, tasaExito: 98.7 },
+    { id: "s6", nombre: "orden_compra", categoria: "Compras", version: "1.1.2", estado: "borrador", ejecuciones: 0, tasaExito: null },
+    { id: "s7", nombre: "despacho_transporte", categoria: "Transporte", version: "1.0.0", estado: "activo", ejecuciones: 143, tasaExito: 96.5 },
+    { id: "s8", nombre: "nomina_quincenal", categoria: "Nomina", version: "2.2.0", estado: "activo", ejecuciones: 48, tasaExito: 100 },
+    { id: "s9", nombre: "campania_mailing", categoria: "Mercadeo", version: "1.3.1", estado: "borrador", ejecuciones: 0, tasaExito: null },
+  ];
+
+  const TOP_USUARIOS: TopUsuario[] = [
+    { usuario: "c.ruiz", nombre: "Carlos Ruiz", ejecuciones: 421, ultima: "18/07/26, 9:12 a. m." },
+    { usuario: "j.perez", nombre: "Juan Pérez", ejecuciones: 318, ultima: "17/07/26, 4:20 p. m." },
+    { usuario: "m.gomez", nombre: "María Gómez", ejecuciones: 254, ultima: "18/07/26, 8:05 a. m." },
+    { usuario: "a.rojas", nombre: "Ana Rojas", ejecuciones: 187, ultima: "16/07/26, 2:03 p. m." },
+    { usuario: "admin", nombre: "Administrador Local", ejecuciones: 96, ultima: "18/07/26, 7:57 a. m." },
   ];
 
   const EJEC_SEMILLA: Ejecucion[] = [
     { script: "aging_cartera", usuario: "j.perez", inicio: "08:12", duracion: "4.2 s", ok: true },
     { script: "reporte_ventas", usuario: "m.gomez", inicio: "08:47", duracion: "2.8 s", ok: true },
     { script: "sync_magento", usuario: "c.ruiz", inicio: "09:03", duracion: "11.5 s", ok: true },
-    { script: "orden_compra", usuario: "l.torres", inicio: "09:31", duracion: "1.1 s", ok: false },
+    { script: "orden_compra", usuario: "l.torres", inicio: "09:31", duracion: "—", ok: false },
   ];
 
   const HIST_SEMILLA = [9, 14, 11, 18, 22, 7]; // 6 días previos; el 7º (hoy) es dinámico
+  const EJEC_HOY_INICIAL = 12;
+  const ERRORES_HOY_INICIAL = 1;
 
-  // Helper: querySelector que falla ruidosamente si el nodo no existe.
+  // Íconos de acción (tabla Usuarios).
+  const ICO_ACC = {
+    ver: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`,
+    editar: `<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>`,
+    bloquear: `<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>`,
+  };
+
   function q<T extends Element>(raiz: ParentNode, sel: string): T {
     const el = raiz.querySelector<T>(sel);
     if (el === null) throw new Error(`Demo Nexus: no se encontró "${sel}"`);
@@ -962,37 +1221,52 @@ const navegacion = [
   }
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const pausa = (ms: number) =>
-    new Promise<void>((r) => setTimeout(r, reduce ? 0 : ms));
+  const pausa = (ms: number) => new Promise<void>((r) => setTimeout(r, reduce ? 0 : ms));
 
   // -------- Estado --------
+  let usuarios: Usuario[] = [];
   let scripts: ScriptDemo[] = [];
   let ejecuciones: Ejecucion[] = [];
   let ejecHoy = 0;
+  let erroresHoy = 0;
   let filtroCat = "todas";
-  let filtroTexto = "";
+  let filtroScriptTexto = "";
+  let filtroUsuTexto = "";
+  let filtroRol = "todos";
+  let filtroEstado = "todos";
   let ejecutando = false;
 
   // -------- Referencias DOM --------
   const raiz = q<HTMLElement>(document, ".demo-nexus");
   const anuncio = q<HTMLElement>(raiz, "#anuncio");
+  const appShell = q<HTMLElement>(raiz, ".app-shell");
 
-  const navBtns = Array.from(raiz.querySelectorAll<HTMLButtonElement>("[data-nav]"));
   const vistas = Array.from(raiz.querySelectorAll<HTMLElement>("[data-vista]"));
+  const breadcrumb = q<HTMLElement>(raiz, '[data-rol="breadcrumb"]');
 
+  const statUsuarios = q<HTMLElement>(raiz, '[data-rol="stat-usuarios"]');
   const statScripts = q<HTMLElement>(raiz, '[data-rol="stat-scripts"]');
   const statEjec = q<HTMLElement>(raiz, '[data-rol="stat-ejec"]');
-  const cuerpoRecientes = q<HTMLElement>(raiz, '[data-rol="cuerpo-recientes"]');
+  const statErrores = q<HTMLElement>(raiz, '[data-rol="stat-errores"]');
+  const cuerpoTopScripts = q<HTMLElement>(raiz, '[data-rol="cuerpo-top-scripts"]');
+  const cuerpoTopUsuarios = q<HTMLElement>(raiz, '[data-rol="cuerpo-top-usuarios"]');
+
+  const cuerpoUsuarios = q<HTMLElement>(raiz, '[data-rol="cuerpo-usuarios"]');
+  const sinUsuarios = q<HTMLElement>(raiz, '[data-rol="sin-usuarios"]');
+  const pagInfo = q<HTMLElement>(raiz, '[data-rol="pag-info"]');
+  const inputBuscarUsu = q<HTMLInputElement>(raiz, '[data-rol="buscar-usuario"]');
+  const selectRol = q<HTMLSelectElement>(raiz, '[data-rol="filtro-rol"]');
+  const selectEstado = q<HTMLSelectElement>(raiz, '[data-rol="filtro-estado"]');
+
   const cuerpoScripts = q<HTMLElement>(raiz, '[data-rol="cuerpo-scripts"]');
-  const cuerpoEjec = q<HTMLElement>(raiz, '[data-rol="cuerpo-ejec"]');
+  const sinScripts = q<HTMLElement>(raiz, '[data-rol="sin-scripts"]');
   const chipsCat = q<HTMLElement>(raiz, '[data-rol="chips-cat"]');
-  const sinResultados = q<HTMLElement>(raiz, '[data-rol="sin-resultados"]');
-  const inputBuscar = q<HTMLInputElement>(raiz, '[data-rol="buscar"]');
+  const inputBuscarScript = q<HTMLInputElement>(raiz, '[data-rol="buscar-script"]');
+  const cuerpoEjec = q<HTMLElement>(raiz, '[data-rol="cuerpo-ejec"]');
 
   const canvas = q<HTMLCanvasElement>(raiz, '[data-rol="grafico"]');
   const ctxMaybe = canvas.getContext("2d");
   if (ctxMaybe === null) throw new Error("Demo Nexus: canvas 2D no disponible");
-  // Tipo no-null explícito para conservar el estrechado dentro de las closures.
   const ctx: CanvasRenderingContext2D = ctxMaybe;
   const graficoWrap = q<HTMLElement>(raiz, '[data-rol="grafico-wrap"]');
 
@@ -1001,10 +1275,22 @@ const navegacion = [
   const consolaLog = q<HTMLElement>(raiz, '[data-rol="consola-log"]');
   const consolaPie = q<HTMLElement>(raiz, '[data-rol="consola-pie"]');
   const consolaCerrar = q<HTMLButtonElement>(raiz, '[data-rol="consola-cerrar"]');
+
   const btnReiniciar = q<HTMLButtonElement>(raiz, '[data-rol="reiniciar"]');
+  const btnColapsar = q<HTMLButtonElement>(raiz, '[data-rol="colapsar"]');
+  const toast = q<HTMLElement>(raiz, '[data-rol="toast"]');
+
+  const RUTAS: Record<string, string[]> = {
+    dashboard: ["Inicio"],
+    usuarios: ["Inicio", "Usuarios"],
+    scripts: ["Inicio", "Scripts"],
+    "logs-ejecucion": ["Inicio", "Logs Ejecución"],
+  };
+
+  const fmtNum = (n: number) => n.toLocaleString("es-CO");
 
   // ============================================================
-  //  Render
+  //  Helpers de render
   // ============================================================
   function catPunto(cat: string): string {
     const c = CATEGORIAS[cat];
@@ -1013,51 +1299,117 @@ const navegacion = [
     return `<span class="cat"><span class="cat-punto" style="background:${color}"></span>${nombre}</span>`;
   }
 
-  function badgeEstado(estado: EstadoScript): string {
-    return `<span class="badge badge-${estado}">${estado}</span>`;
-  }
-
-  function filaScript(s: ScriptDemo, conAccion: boolean): string {
-    const accion = conAccion
-      ? `<td class="col-accion"><button type="button" class="btn-ejecutar" data-ejecutar="${s.id}"${s.estado === "borrador" ? " disabled title=\"Los borradores no se ejecutan\"" : ""}>▶ Ejecutar</button></td>`
-      : "";
-    return `<tr>
-      <td><span class="script-nombre">${s.nombre}</span></td>
-      <td>${catPunto(s.categoria)}</td>
-      <td><span class="script-nombre">v${s.version}</span></td>
-      <td>${badgeEstado(s.estado)}</td>
-      ${accion}
-    </tr>`;
-  }
-
   function renderStats() {
+    statUsuarios.textContent = String(usuarios.length);
     statScripts.textContent = String(scripts.filter((s) => s.estado === "activo").length);
     statEjec.textContent = String(ejecHoy);
+    statErrores.textContent = String(erroresHoy);
   }
 
-  function renderRecientes() {
-    cuerpoRecientes.innerHTML = scripts
-      .slice(0, 5)
-      .map((s) => filaScript(s, false))
+  function renderTop() {
+    const top = [...scripts]
+      .filter((s) => s.ejecuciones > 0)
+      .sort((a, b) => b.ejecuciones - a.ejecuciones)
+      .slice(0, 5);
+    cuerpoTopScripts.innerHTML = top
+      .map(
+        (s) => `<tr>
+          <td><span class="script-nombre">${s.nombre}</span></td>
+          <td>${catPunto(s.categoria)}</td>
+          <td class="num">${fmtNum(s.ejecuciones)}</td>
+          <td class="num">${s.tasaExito !== null ? s.tasaExito.toFixed(1) + "%" : "—"}</td>
+        </tr>`,
+      )
+      .join("");
+
+    cuerpoTopUsuarios.innerHTML = TOP_USUARIOS
+      .map(
+        (u) => `<tr>
+          <td><span class="script-nombre">${u.usuario}</span></td>
+          <td>${u.nombre}</td>
+          <td class="num">${fmtNum(u.ejecuciones)}</td>
+          <td>${u.ultima}</td>
+        </tr>`,
+      )
       .join("");
   }
 
+  // -------- Usuarios --------
+  function usuariosFiltrados(): Usuario[] {
+    const t = filtroUsuTexto.toLowerCase();
+    return usuarios.filter((u) => {
+      const okTexto = t === "" || u.usuario.toLowerCase().includes(t) || u.nombre.toLowerCase().includes(t) || u.email.toLowerCase().includes(t);
+      const okRol = filtroRol === "todos" || u.rol === filtroRol;
+      const okEstado = filtroEstado === "todos" || u.estado === filtroEstado;
+      return okTexto && okRol && okEstado;
+    });
+  }
+
+  function renderUsuarios() {
+    const lista = usuariosFiltrados();
+    cuerpoUsuarios.innerHTML = lista
+      .map(
+        (u) => `<tr>
+          <td><span class="script-nombre">${u.usuario}</span></td>
+          <td>${u.nombre}</td>
+          <td>${u.email}</td>
+          <td><span class="badge badge-rol">${u.rol}</span></td>
+          <td>${u.departamento}</td>
+          <td><span class="badge badge-${u.estado === "Activo" ? "activo" : "inactivo"}">${u.estado}</span></td>
+          <td>${u.ultimoLogin}</td>
+          <td class="col-accion">
+            <span class="acciones-fila">
+              <button type="button" class="accion-ico" data-seccion="Ver usuario" aria-label="Ver ${u.usuario}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICO_ACC.ver}</svg></button>
+              <button type="button" class="accion-ico" data-seccion="Editar usuario" aria-label="Editar ${u.usuario}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICO_ACC.editar}</svg></button>
+              <button type="button" class="accion-ico" data-tono="rojo" data-seccion="Bloquear usuario" aria-label="Bloquear ${u.usuario}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICO_ACC.bloquear}</svg></button>
+            </span>
+          </td>
+        </tr>`,
+      )
+      .join("");
+    sinUsuarios.hidden = lista.length > 0;
+    const n = lista.length;
+    pagInfo.textContent = n === 0 ? "Mostrando 0 de 0" : `Mostrando 1-${n} de ${n}`;
+  }
+
+  // -------- Scripts --------
   function scriptsFiltrados(): ScriptDemo[] {
+    const t = filtroScriptTexto.toLowerCase();
     return scripts.filter((s) => {
       const okCat = filtroCat === "todas" || s.categoria === filtroCat;
-      const okTexto =
-        filtroTexto === "" ||
-        s.nombre.toLowerCase().includes(filtroTexto.toLowerCase());
+      const okTexto = t === "" || s.nombre.toLowerCase().includes(t);
       return okCat && okTexto;
     });
   }
 
   function renderScripts() {
     const lista = scriptsFiltrados();
-    cuerpoScripts.innerHTML = lista.map((s) => filaScript(s, true)).join("");
-    sinResultados.hidden = lista.length > 0;
+    cuerpoScripts.innerHTML = lista
+      .map(
+        (s) => `<tr>
+          <td><span class="script-nombre">${s.nombre}</span></td>
+          <td>${catPunto(s.categoria)}</td>
+          <td><span class="script-nombre">v${s.version}</span></td>
+          <td><span class="badge badge-${s.estado === "activo" ? "activo" : "borrador"}">${s.estado}</span></td>
+          <td class="col-accion"><button type="button" class="btn-ejecutar" data-ejecutar="${s.id}"${s.estado === "borrador" ? ' disabled title="Los borradores no se ejecutan"' : ""}>▶ Ejecutar</button></td>
+        </tr>`,
+      )
+      .join("");
+    sinScripts.hidden = lista.length > 0;
   }
 
+  function renderChips() {
+    const cats = Array.from(new Set(scripts.map((s) => s.categoria)));
+    const chip = (id: string, etiqueta: string, color: string | null, activo: boolean) =>
+      `<button type="button" class="chip-cat ${activo ? "es-activo" : ""}" data-cat="${id}" aria-pressed="${activo}">${
+        color ? `<span class="cat-punto" style="background:${color}"></span>` : ""
+      }${etiqueta}</button>`;
+    chipsCat.innerHTML = [chip("todas", "Todas", null, filtroCat === "todas")]
+      .concat(cats.map((c) => chip(c, CATEGORIAS[c] ? CATEGORIAS[c].nombre : c, CATEGORIAS[c]?.color ?? "#888", filtroCat === c)))
+      .join("");
+  }
+
+  // -------- Logs --------
   function renderEjecuciones() {
     cuerpoEjec.innerHTML = ejecuciones
       .map(
@@ -1072,36 +1424,20 @@ const navegacion = [
       .join("");
   }
 
-  function renderChips() {
-    const cats = Array.from(new Set(scripts.map((s) => s.categoria)));
-    const chip = (id: string, etiqueta: string, color: string | null, activo: boolean) =>
-      `<button type="button" class="chip-cat ${activo ? "es-activo" : ""}" data-cat="${id}" aria-pressed="${activo}">${
-        color ? `<span class="cat-punto" style="background:${color}"></span>` : ""
-      }${etiqueta}</button>`;
-    const html = [chip("todas", "Todas", null, filtroCat === "todas")]
-      .concat(
-        cats.map((c) =>
-          chip(c, CATEGORIAS[c] ? CATEGORIAS[c].nombre : c, CATEGORIAS[c]?.color ?? "#888", filtroCat === c),
-        ),
-      )
-      .join("");
-    chipsCat.innerHTML = html;
-  }
-
   // -------- Gráfico de barras (lee tokens del tema) --------
   function pintarGrafico() {
     const dpr = window.devicePixelRatio || 1;
     const w = canvas.clientWidth;
     const totalH = canvas.clientHeight;
     if (w <= 0 || totalH <= 0) return;
-    const h = totalH - 22; // zona de barras; el resto se reserva para etiquetas
+    const h = totalH - 22;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(totalH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, totalH);
 
     const estilos = getComputedStyle(raiz);
-    const colBarra = estilos.getPropertyValue("--nx-azul-claro").trim() || "#4a90d9";
+    const colBarra = estilos.getPropertyValue("--nx-blue").trim() || "#4a90d9";
     const colTexto = estilos.getPropertyValue("--faint").trim() || "#888";
     const colRejilla = estilos.getPropertyValue("--border").trim() || "#ddd";
 
@@ -1109,10 +1445,9 @@ const navegacion = [
     const etiquetas = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Hoy"];
     const max = Math.max(...datos, 1) * 1.15;
     const n = datos.length;
-    const gap = 14;
+    const gap = 16;
     const bw = (w - gap * (n - 1)) / n;
 
-    // Rejilla base
     ctx.strokeStyle = colRejilla;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1129,9 +1464,8 @@ const navegacion = [
       const y = h - bh;
       const esHoy = i === n - 1;
       ctx.fillStyle = colBarra;
-      ctx.globalAlpha = esHoy ? 1 : 0.55;
-      const r = Math.min(5, bw / 2);
-      // barra con esquinas superiores redondeadas
+      ctx.globalAlpha = esHoy ? 1 : 0.5;
+      const r = Math.min(6, bw / 2);
       ctx.beginPath();
       ctx.moveTo(x, h);
       ctx.lineTo(x, y + r);
@@ -1142,10 +1476,8 @@ const navegacion = [
       ctx.closePath();
       ctx.fill();
       ctx.globalAlpha = 1;
-      // valor
       ctx.fillStyle = colTexto;
       ctx.fillText(String(v), x + bw / 2, y - 6);
-      // etiqueta
       ctx.fillText(etiquetas[i], x + bw / 2, h + 18);
     });
   }
@@ -1153,33 +1485,56 @@ const navegacion = [
   // ============================================================
   //  Navegación entre vistas
   // ============================================================
+  function pintarBreadcrumb(vistaId: string) {
+    const partes = RUTAS[vistaId] ?? ["Inicio"];
+    breadcrumb.innerHTML = partes
+      .map((p, i) => (i === partes.length - 1 ? `<span class="bc-actual">${p}</span>` : `<span>${p}</span><span class="bc-sep">/</span>`))
+      .join("");
+  }
+
   function irA(vistaId: string) {
     vistas.forEach((v) => {
       const activa = v.dataset.vista === vistaId;
       v.hidden = !activa;
       v.classList.toggle("es-activa", activa);
     });
-    raiz.querySelectorAll<HTMLButtonElement>("[data-nav]").forEach((b) => {
-      const esNav = b.classList.contains("nav-item");
-      if (!esNav) return;
+    raiz.querySelectorAll<HTMLButtonElement>(".nav-item").forEach((b) => {
       const activo = b.dataset.nav === vistaId;
       b.classList.toggle("es-activo", activo);
       b.setAttribute("aria-current", activo ? "page" : "false");
     });
+    pintarBreadcrumb(vistaId);
     const vistaActiva = vistas.find((v) => v.dataset.vista === vistaId);
     if (vistaActiva) vistaActiva.focus();
     if (vistaId === "dashboard") requestAnimationFrame(pintarGrafico);
   }
 
-  navBtns.forEach((b) =>
-    b.addEventListener("click", () => {
-      const destino = b.dataset.nav;
-      if (destino) irA(destino);
-    }),
-  );
+  // -------- Toast para secciones no incluidas --------
+  let toastTimer: number | undefined;
+  function mostrarToast(msg: string) {
+    toast.textContent = msg;
+    toast.classList.add("es-visible");
+    anuncio.textContent = msg;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove("es-visible"), 2600);
+  }
+
+  // Delegación global de navegación y acciones no funcionales.
+  raiz.addEventListener("click", (ev) => {
+    const target = ev.target as HTMLElement;
+    const nav = target.closest<HTMLButtonElement>(".nav-item, [data-seccion], [data-nav]");
+    if (!nav) return;
+    const destino = nav.dataset.nav;
+    if (destino) {
+      irA(destino);
+      return;
+    }
+    const seccion = nav.dataset.seccion;
+    if (seccion) mostrarToast(`«${seccion}» no está incluido en esta demo interactiva.`);
+  });
 
   // ============================================================
-  //  Filtros de la vista Scripts
+  //  Filtros
   // ============================================================
   chipsCat.addEventListener("click", (ev) => {
     const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>("[data-cat]");
@@ -1189,14 +1544,22 @@ const navegacion = [
     renderScripts();
   });
 
-  inputBuscar.addEventListener("input", () => {
-    filtroTexto = inputBuscar.value.trim();
-    // El buscador global lleva a la vista Scripts al escribir.
-    if (filtroTexto !== "") {
-      const scriptsVista = vistas.find((v) => v.dataset.vista === "scripts");
-      if (scriptsVista && scriptsVista.hidden) irA("scripts");
-    }
+  inputBuscarScript.addEventListener("input", () => {
+    filtroScriptTexto = inputBuscarScript.value.trim();
     renderScripts();
+  });
+
+  inputBuscarUsu.addEventListener("input", () => {
+    filtroUsuTexto = inputBuscarUsu.value.trim();
+    renderUsuarios();
+  });
+  selectRol.addEventListener("change", () => {
+    filtroRol = selectRol.value;
+    renderUsuarios();
+  });
+  selectEstado.addEventListener("change", () => {
+    filtroEstado = selectEstado.value;
+    renderUsuarios();
   });
 
   // ============================================================
@@ -1242,7 +1605,6 @@ const navegacion = [
     linea("l-cmd", `[${ahora()}] Ejecutando script…`);
     await pausa(900);
 
-    // Resultado determinista por script (para reproducibilidad), 1 de cada ~5 falla.
     const falla = script.nombre.length % 5 === 0;
     const dur = (1.2 + (script.nombre.length % 7) * 0.8).toFixed(1) + " s";
 
@@ -1251,6 +1613,7 @@ const navegacion = [
       consolaPie.textContent = "✕ Ejecución finalizada con error";
       consolaPie.classList.add("es-err");
       anuncio.textContent = `La ejecución de ${script.nombre} terminó con error.`;
+      erroresHoy += 1;
     } else {
       linea("l-ok", `[${ahora()}] Proceso completado correctamente (código 0).`);
       consolaPie.textContent = `✓ Ejecución completada en ${dur}`;
@@ -1258,8 +1621,8 @@ const navegacion = [
       anuncio.textContent = `${script.nombre} se ejecutó correctamente.`;
     }
 
-    // Actualiza métricas y registro
     ejecHoy += 1;
+    script.ejecuciones += 1;
     ejecuciones.unshift({
       script: script.nombre,
       usuario: "admin",
@@ -1268,16 +1631,14 @@ const navegacion = [
       ok: !falla,
     });
     renderStats();
+    renderTop();
     renderEjecuciones();
     pintarGrafico();
     ejecutando = false;
   }
 
-  function cerrarConsola() {
-    overlay.hidden = true;
-  }
+  function cerrarConsola() { overlay.hidden = true; }
 
-  // Delegación: botones "Ejecutar" (se regeneran al filtrar)
   cuerpoScripts.addEventListener("click", (ev) => {
     const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>("[data-ejecutar]");
     if (!btn || btn.disabled) return;
@@ -1293,18 +1654,32 @@ const navegacion = [
     if (ev.key === "Escape" && !overlay.hidden) cerrarConsola();
   });
 
+  // Colapsar sidebar / cerrar sesión (simulado)
+  btnColapsar.addEventListener("click", () => appShell.classList.toggle("compacta"));
+  const btnSalir = q<HTMLButtonElement>(raiz, '[data-rol="salir"]');
+  btnSalir.addEventListener("click", () => mostrarToast("Sesión cerrada (simulado). Recarga para reiniciar la demo."));
+
   // ============================================================
   //  Reiniciar datos
   // ============================================================
   function reiniciar() {
+    usuarios = USUARIOS_SEMILLA.map((u) => ({ ...u }));
     scripts = SCRIPTS_SEMILLA.map((s) => ({ ...s }));
     ejecuciones = EJEC_SEMILLA.map((e) => ({ ...e }));
-    ejecHoy = 12;
+    ejecHoy = EJEC_HOY_INICIAL;
+    erroresHoy = ERRORES_HOY_INICIAL;
     filtroCat = "todas";
-    filtroTexto = "";
-    inputBuscar.value = "";
+    filtroScriptTexto = "";
+    filtroUsuTexto = "";
+    filtroRol = "todos";
+    filtroEstado = "todos";
+    inputBuscarScript.value = "";
+    inputBuscarUsu.value = "";
+    selectRol.value = "todos";
+    selectEstado.value = "todos";
     renderStats();
-    renderRecientes();
+    renderTop();
+    renderUsuarios();
     renderChips();
     renderScripts();
     renderEjecuciones();
@@ -1315,6 +1690,7 @@ const navegacion = [
   btnReiniciar.addEventListener("click", () => {
     reiniciar();
     irA("dashboard");
+    mostrarToast("Datos de la demo reiniciados.");
   });
 
   // ============================================================
