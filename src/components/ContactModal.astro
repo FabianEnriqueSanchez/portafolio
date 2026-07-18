@@ -1,0 +1,396 @@
+---
+import { perfil, contacto } from "../data/site";
+
+// Modal de contacto que envía por Web3Forms (sin backend: el sitio es estático).
+// Se abre desde cualquier elemento con [data-abrir-contacto]. La Access Key es
+// pública por diseño: solo permite enviar correos a la dirección verificada.
+---
+
+<div class="cm-overlay" data-rol="cm-overlay" hidden>
+  <div
+    class="cm-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cm-titulo"
+    data-rol="cm-dialog"
+  >
+    <div class="cm-cabecera">
+      <div>
+        <p class="cm-eyebrow">Contacto</p>
+        <h2 id="cm-titulo" class="cm-titulo">Escríbeme</h2>
+      </div>
+      <button type="button" class="cm-cerrar" data-rol="cm-cerrar" aria-label="Cerrar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Estado: formulario -->
+    <form class="cm-form" data-rol="cm-form" novalidate>
+      <p class="cm-intro">
+        Cuéntame en qué puedo ayudarte y te respondo lo antes posible. El mensaje
+        llega directo a mi correo.
+      </p>
+
+      <div class="cm-campo">
+        <label for="cm-nombre">Tu nombre</label>
+        <input type="text" id="cm-nombre" name="nombre" required autocomplete="name" placeholder="Nombre y apellido" />
+      </div>
+
+      <div class="cm-campo">
+        <label for="cm-email">Tu correo</label>
+        <input type="email" id="cm-email" name="email" required autocomplete="email" placeholder="tucorreo@ejemplo.com" />
+      </div>
+
+      <div class="cm-campo">
+        <label for="cm-asunto">Asunto</label>
+        <input type="text" id="cm-asunto" name="asunto" value={contacto.asuntoDefecto} />
+      </div>
+
+      <div class="cm-campo">
+        <label for="cm-mensaje">Mensaje</label>
+        <textarea id="cm-mensaje" name="mensaje" rows="4" required placeholder="Escribe tu mensaje…"></textarea>
+      </div>
+
+      <!-- Trampa antispam (debe quedar vacío) -->
+      <input type="checkbox" name="botcheck" class="cm-botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <p class="cm-error" data-rol="cm-error" role="alert" hidden></p>
+
+      <div class="cm-acciones">
+        <button type="button" class="btn btn-ghost" data-rol="cm-cancelar">Cancelar</button>
+        <button type="submit" class="btn btn-primary" data-rol="cm-enviar">
+          <span data-rol="cm-enviar-texto">Enviar mensaje</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Estado: éxito -->
+    <div class="cm-exito" data-rol="cm-exito" hidden>
+      <span class="cm-exito-icono" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+      </span>
+      <h3 class="cm-exito-titulo">¡Mensaje enviado!</h3>
+      <p class="cm-exito-texto">Gracias por escribir. Te responderé lo antes posible.</p>
+      <button type="button" class="btn btn-primary" data-rol="cm-cerrar-exito">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ WEB3FORMS_KEY: contacto.web3formsKey, EMAIL: perfil.email }}>
+  (function () {
+    const overlay = document.querySelector('[data-rol="cm-overlay"]');
+    if (!overlay) return;
+    const dialog = overlay.querySelector('[data-rol="cm-dialog"]');
+    const form = overlay.querySelector('[data-rol="cm-form"]');
+    const exito = overlay.querySelector('[data-rol="cm-exito"]');
+    const errorBox = overlay.querySelector('[data-rol="cm-error"]');
+    const btnEnviar = overlay.querySelector('[data-rol="cm-enviar"]');
+    const btnEnviarTexto = overlay.querySelector('[data-rol="cm-enviar-texto"]');
+    const cerrables = overlay.querySelectorAll(
+      '[data-rol="cm-cerrar"], [data-rol="cm-cancelar"], [data-rol="cm-cerrar-exito"]'
+    );
+
+    let ultimoFoco = null;
+
+    function abrir(ev) {
+      if (ev) ev.preventDefault();
+      ultimoFoco = document.activeElement;
+      overlay.hidden = false;
+      document.body.style.overflow = "hidden";
+      mostrarFormulario();
+      const primero = form.querySelector("#cm-nombre");
+      if (primero) primero.focus();
+      document.addEventListener("keydown", onKeydown);
+    }
+
+    function cerrar() {
+      overlay.hidden = true;
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKeydown);
+      if (ultimoFoco && typeof ultimoFoco.focus === "function") ultimoFoco.focus();
+    }
+
+    function mostrarFormulario() {
+      form.hidden = false;
+      exito.hidden = true;
+      errorBox.hidden = true;
+      errorBox.textContent = "";
+    }
+
+    function onKeydown(ev) {
+      if (ev.key === "Escape") {
+        cerrar();
+        return;
+      }
+      if (ev.key === "Tab") {
+        // Foco atrapado dentro del diálogo
+        const focos = dialog.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled])'
+        );
+        const visibles = Array.prototype.filter.call(focos, function (el) {
+          return el.offsetParent !== null && el.getAttribute("aria-hidden") !== "true";
+        });
+        if (visibles.length === 0) return;
+        const primero = visibles[0];
+        const ultimo = visibles[visibles.length - 1];
+        if (ev.shiftKey && document.activeElement === primero) {
+          ev.preventDefault();
+          ultimo.focus();
+        } else if (!ev.shiftKey && document.activeElement === ultimo) {
+          ev.preventDefault();
+          primero.focus();
+        }
+      }
+    }
+
+    // Disparadores externos (icono del Hero, botón de la sección Contacto…)
+    document.querySelectorAll("[data-abrir-contacto]").forEach(function (btn) {
+      btn.addEventListener("click", abrir);
+    });
+
+    cerrables.forEach(function (b) {
+      b.addEventListener("click", cerrar);
+    });
+    overlay.addEventListener("click", function (ev) {
+      if (ev.target === overlay) cerrar();
+    });
+
+    form.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      errorBox.hidden = true;
+
+      // Trampa antispam: si viene marcada, es un bot.
+      if (form.querySelector('[name="botcheck"]').checked) return;
+
+      const nombre = form.querySelector("#cm-nombre").value.trim();
+      const email = form.querySelector("#cm-email").value.trim();
+      const asunto = form.querySelector("#cm-asunto").value.trim();
+      const mensaje = form.querySelector("#cm-mensaje").value.trim();
+
+      if (!nombre || !email || !mensaje) {
+        errorBox.textContent = "Completa tu nombre, correo y mensaje.";
+        errorBox.hidden = false;
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorBox.textContent = "Revisa tu correo: no parece válido.";
+        errorBox.hidden = false;
+        return;
+      }
+
+      btnEnviar.disabled = true;
+      btnEnviarTexto.textContent = "Enviando…";
+
+      try {
+        const resp = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: asunto || "Contacto desde el portafolio",
+            from_name: "Portafolio — " + nombre,
+            name: nombre,
+            email: email,
+            message: mensaje,
+            botcheck: false,
+          }),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          form.reset();
+          form.hidden = true;
+          exito.hidden = false;
+          const cerrarExito = overlay.querySelector('[data-rol="cm-cerrar-exito"]');
+          if (cerrarExito) cerrarExito.focus();
+        } else {
+          throw new Error(data.message || "No se pudo enviar");
+        }
+      } catch (err) {
+        errorBox.innerHTML =
+          "No se pudo enviar el mensaje. Inténtalo de nuevo o escríbeme a " +
+          '<a href="mailto:' + EMAIL + '">' + EMAIL + "</a>.";
+        errorBox.hidden = false;
+      } finally {
+        btnEnviar.disabled = false;
+        btnEnviarTexto.textContent = "Enviar mensaje";
+      }
+    });
+  })();
+</script>
+
+<style>
+  .cm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(12, 10, 9, 0.55);
+    backdrop-filter: blur(2px);
+  }
+  .cm-overlay[hidden] {
+    display: none;
+  }
+
+  .cm-dialog {
+    width: min(520px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+    padding: 1.5rem;
+  }
+
+  .cm-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  .cm-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .cm-titulo {
+    font-size: var(--text-2xl);
+    margin-top: 0.2rem;
+  }
+  .cm-cerrar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .cm-cerrar:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  .cm-intro {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    margin-bottom: 1.2rem;
+  }
+
+  .cm-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.9rem;
+  }
+  .cm-campo label {
+    font-size: var(--text-sm);
+    font-weight: 560;
+    color: var(--text);
+  }
+  .cm-campo input,
+  .cm-campo textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .cm-campo textarea {
+    resize: vertical;
+    min-height: 96px;
+  }
+  .cm-campo input:focus,
+  .cm-campo textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Honeypot: invisible para humanos, presente para bots */
+  .cm-botcheck {
+    position: absolute !important;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .cm-error {
+    margin: 0.2rem 0 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid color-mix(in srgb, #e0544f 40%, var(--border));
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, #e0544f 10%, transparent);
+    color: #c0392b;
+    font-size: var(--text-sm);
+  }
+  .cm-error[hidden] {
+    display: none;
+  }
+  .cm-error a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  :root[data-theme="dark"] .cm-error {
+    color: #ff9b95;
+  }
+
+  .cm-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    margin-top: 1.2rem;
+  }
+  .cm-acciones .btn {
+    cursor: pointer;
+  }
+  [data-rol="cm-enviar"]:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  /* Estado éxito */
+  .cm-exito {
+    text-align: center;
+    padding: 1rem 0.5rem;
+  }
+  .cm-exito[hidden] {
+    display: none;
+  }
+  .cm-exito-icono {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+  }
+  .cm-exito-titulo {
+    font-size: var(--text-xl);
+    margin-bottom: 0.5rem;
+  }
+  .cm-exito-texto {
+    color: var(--muted);
+    font-size: var(--text-sm);
+    margin-bottom: 1.4rem;
+  }
+</style>

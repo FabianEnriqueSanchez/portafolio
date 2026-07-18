@@ -67,4 +67,13 @@ export const certificaciones: Certificacion[] = data.certificaciones;
 export const idiomas: Idioma[] = data.idiomas;
 export const navegacion: EnlaceNavegacion[] = data.navegacion;
 export const cv: ConfigCV = data.cv as ConfigCV;
+
+export type ConfigContacto = {
+  /** Access Key pública de Web3Forms (segura para código cliente). */
+  web3formsKey: string;
+  /** Asunto por defecto del formulario de contacto. */
+  asuntoDefecto: string;
+};
+export const contacto: ConfigContacto = data.contacto as ConfigContacto;
+
 export const admin = data.admin;
