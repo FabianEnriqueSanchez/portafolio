@@ -1,13 +1,8 @@
 ---
+import { Image } from "astro:assets";
 import { perfil, navegacion } from "../data/site";
 import { withBase } from "../lib/utils";
-
-// Las iniciales para el logo
-const iniciales = perfil.nombre
-  .split(" ")
-  .slice(0, 2)
-  .map((p) => p[0])
-  .join("");
+import fotoPerfil from "../assets/foto-perfil.png";
 
 // Las anclas se prefijan con la home para que funcionen también desde /docs
 const hrefNav = (href: string) =>
@@ -17,7 +12,14 @@ const hrefNav = (href: string) =>
 <header class="site-header">
   <div class="container header-inner">
     <a href={withBase("/")} class="logo">
-      <span class="logo-mark" aria-hidden="true">{iniciales}</span>
+      <Image
+        src={fotoPerfil}
+        alt=""
+        width={72}
+        height={96}
+        class="logo-mark"
+        loading="eager"
+      />
       <span class="logo-text">{perfil.nombre}</span>
     </a>
 
@@ -134,16 +136,13 @@ const hrefNav = (href: string) =>
   }
 
   .logo-mark {
-    display: grid;
-    place-items: center;
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    font-size: 0.85rem;
-    font-weight: 680;
-    letter-spacing: 0;
+    object-fit: cover;
+    object-position: 50% 15%;
+    border: 1px solid var(--border);
+    display: block;
   }
 
   .logo-text {

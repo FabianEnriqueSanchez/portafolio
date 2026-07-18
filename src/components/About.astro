@@ -1,9 +1,21 @@
 ---
-import { sobreMi, idiomas } from "../data/site";
+import { Image } from "astro:assets";
+import { sobreMi, idiomas, perfil } from "../data/site";
+import fotoPerfil from "../assets/foto-perfil.png";
 ---
 
 <section id="sobre-mi" class="section">
   <div class="container about-grid">
+    <div class="about-foto-col reveal">
+      <Image
+        src={fotoPerfil}
+        alt={`Foto de ${perfil.nombre}`}
+        width={520}
+        height={693}
+        class="about-foto"
+      />
+    </div>
+
     <div class="about-text reveal">
       <p class="eyebrow">Sobre mí</p>
       <h2 class="section-title">Un poco de contexto sobre lo que hago</h2>
@@ -34,9 +46,23 @@ import { sobreMi, idiomas } from "../data/site";
 <style>
   .about-grid {
     display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: clamp(2rem, 5vw, 4rem);
+    grid-template-columns: minmax(220px, 300px) 1.3fr 1fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
     align-items: start;
+  }
+
+  .about-foto-col {
+    position: sticky;
+    top: 90px;
+  }
+
+  .about-foto {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
   }
 
   .about-p {
@@ -106,9 +132,14 @@ import { sobreMi, idiomas } from "../data/site";
     color: var(--accent);
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 1000px) {
     .about-grid {
       grid-template-columns: 1fr;
+    }
+    .about-foto-col {
+      position: static;
+      top: auto;
+      max-width: 300px;
     }
   }
 </style>
