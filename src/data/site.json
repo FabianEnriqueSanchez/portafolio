@@ -3,7 +3,7 @@
     "nombre": "Fabián Enrique Sánchez Solano",
     "rol": "Analista de Sistemas y Desarrollador de TI",
     "titular": "Desarrollo software, automatizo procesos y construyo APIs que mejoran la productividad de las empresas.",
-    "resumen": "Más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico. Trabajo con Python, Java, JavaScript y Vue.js, integración de APIs REST, AWS y metodologías ágiles (Scrum).",
+    "resumen": "Más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico. Trabajo con Python, JavaScript y Vue.js, integración de APIs REST, AWS y metodologías ágiles (Scrum).",
     "ubicacion": "Santander, Colombia",
     "email": "fabienrisanchez@gmail.com",
     "telefono": "+57 302 262 4361",
@@ -38,7 +38,13 @@
       "slug": "nexus",
       "titulo": "Nexus — Sistema centralizado de scripts empresariales",
       "descripcion": "Sistema cliente-servidor que centraliza la distribución, versionamiento, ejecución y monitoreo de scripts Python empresariales (SAP, contabilidad, cartera). Backend FastAPI con 108+ endpoints, panel administrativo en Vue.js, launcher de escritorio y despliegue con Docker. Incluye autenticación JWT/RBAC, cifrado AES-256 y rate limiting.",
-      "tags": ["Python", "FastAPI", "Vue.js", "Docker", "MariaDB"],
+      "tags": [
+        "Python",
+        "FastAPI",
+        "Vue.js",
+        "Docker",
+        "MariaDB"
+      ],
       "demo": "/demos/nexus",
       "repo": "",
       "doc": "nexus",
@@ -49,7 +55,12 @@
       "slug": "physcalc-pro",
       "titulo": "PhysCalc Pro — Calculadora de propiedades físicas",
       "descripcion": "Calculadora web interactiva para análisis de propiedades físicas industriales: calor, temperatura, presión, caudal, energía potencial y eficiencia energética. Desarrollada como caso de estudio para TecnoIndustria S.A.S.",
-      "tags": ["HTML5", "CSS3", "JavaScript", "GitHub Pages"],
+      "tags": [
+        "HTML5",
+        "CSS3",
+        "JavaScript",
+        "GitHub Pages"
+      ],
       "demo": "https://fabianenriquesanchez.github.io/PhysCalcPro/",
       "repo": "https://github.com/FabianEnriqueSanchez/PhysCalcPro",
       "doc": "physcalc-pro",
@@ -60,7 +71,12 @@
       "slug": "sistema-control",
       "titulo": "Sistema de control con Java y Arduino",
       "descripcion": "Sistema de control que integra software en Java con hardware Arduino para automatizar y optimizar procesos operativos internos.",
-      "tags": ["Java", "Arduino", "IoT", "Automatización"],
+      "tags": [
+        "Java",
+        "Arduino",
+        "IoT",
+        "Automatización"
+      ],
       "demo": "/demos/sistema-control",
       "repo": "",
       "doc": "sistema-control",
@@ -71,7 +87,12 @@
       "slug": "apis-datos",
       "titulo": "APIs y servidores de gestión de datos",
       "descripcion": "Desarrollo de APIs REST y servidores para la integración y gestión de datos empresariales, base de varias automatizaciones internas.",
-      "tags": ["Python", "API REST", "MySQL", "AWS EC2"],
+      "tags": [
+        "Python",
+        "API REST",
+        "MySQL",
+        "AWS EC2"
+      ],
       "demo": "/demos/apis-datos",
       "repo": "",
       "doc": "apis-datos",
@@ -82,7 +103,11 @@
       "slug": "automatizacion-procesos",
       "titulo": "Automatización de procesos internos",
       "descripcion": "Formularios y flujos automatizados con Power Automate y Power Apps que redujeron tiempos de soporte y optimizaron procesos del negocio.",
-      "tags": ["Power Automate", "Power Apps", "Scrum"],
+      "tags": [
+        "Power Automate",
+        "Power Apps",
+        "Scrum"
+      ],
       "demo": "/demos/automatizacion-procesos",
       "repo": "",
       "doc": "automatizacion-procesos",
@@ -143,16 +168,40 @@
     }
   ],
   "idiomas": [
-    { "idioma": "Español", "nivel": "Nativo" },
-    { "idioma": "Inglés", "nivel": "Intermedio" }
+    {
+      "idioma": "Español",
+      "nivel": "Nativo"
+    },
+    {
+      "idioma": "Inglés",
+      "nivel": "Intermedio"
+    }
   ],
   "navegacion": [
-    { "texto": "Inicio", "href": "#inicio" },
-    { "texto": "Sobre mí", "href": "#sobre-mi" },
-    { "texto": "Experiencia", "href": "#experiencia" },
-    { "texto": "Proyectos", "href": "#proyectos" },
-    { "texto": "Documentación", "href": "/docs" },
-    { "texto": "Contacto", "href": "#contacto" }
+    {
+      "texto": "Inicio",
+      "href": "#inicio"
+    },
+    {
+      "texto": "Sobre mí",
+      "href": "#sobre-mi"
+    },
+    {
+      "texto": "Experiencia",
+      "href": "#experiencia"
+    },
+    {
+      "texto": "Proyectos",
+      "href": "#proyectos"
+    },
+    {
+      "texto": "Documentación",
+      "href": "/docs"
+    },
+    {
+      "texto": "Contacto",
+      "href": "#contacto"
+    }
   ],
   "cv": {
     "plantilla": "moderna",
