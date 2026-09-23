@@ -128,6 +128,13 @@ const sinProtocolo = (url: string) =>
       </ul>
     </section>
 
+    <section class="bloque-lateral" aria-labelledby="m-blandas">
+      <h2 id="m-blandas">Habilidades blandas</h2>
+      <ul class="blandas">
+        {sobreMi.blandas.map((h) => <li>{h}</li>)}
+      </ul>
+    </section>
+
     <section class="bloque-lateral" aria-labelledby="m-idiomas">
       <h2 id="m-idiomas">Idiomas</h2>
       <ul class="idiomas">
@@ -378,6 +385,27 @@ const sinProtocolo = (url: string) =>
     padding: 0.18rem 0.6rem;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .blandas {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.28rem;
+  }
+
+  .blandas li {
+    font-size: 0.78rem;
+    color: var(--cv-gris);
+    padding-left: 0.7rem;
+    position: relative;
+  }
+
+  .blandas li::before {
+    content: "2";
+    position: absolute;
+    left: 0;
+    color: var(--cv-teal-oscuro);
   }
 
   .idiomas {

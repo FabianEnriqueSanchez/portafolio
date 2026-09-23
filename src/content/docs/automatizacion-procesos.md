@@ -2,7 +2,7 @@
 titulo: "Automatización de procesos internos"
 descripcion: "Formularios y flujos con Power Automate y Power Apps que optimizaron procesos del negocio."
 actualizado: "2026-07-07"
-orden: 3
+orden: 7
 ---
 
 ## Visión general

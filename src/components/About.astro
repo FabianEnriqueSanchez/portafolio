@@ -28,6 +28,11 @@ import fotoPerfil from "../assets/foto-perfil.png";
         {sobreMi.stack.map((t) => <li class="stack-tag">{t}</li>)}
       </ul>
 
+      <h3 class="stack-title stack-title-sep">Habilidades blandas</h3>
+      <ul class="blandas-list">
+        {sobreMi.blandas.map((h) => <li class="blanda">{h}</li>)}
+      </ul>
+
       <h3 class="stack-title stack-title-sep">Idiomas</h3>
       <ul class="idiomas-list">
         {
@@ -105,6 +110,31 @@ import fotoPerfil from "../assets/foto-perfil.png";
     margin-top: 1.6rem;
     padding-top: 1.4rem;
     border-top: 1px solid var(--border);
+  }
+
+  .blandas-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .blanda {
+    position: relative;
+    padding-left: 1.05rem;
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+
+  .blanda::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
   }
 
   .idiomas-list {

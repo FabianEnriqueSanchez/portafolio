@@ -2,7 +2,7 @@
 titulo: "Sistema de control con Java y Arduino"
 descripcion: "Integración de software en Java con hardware Arduino para automatizar procesos operativos."
 actualizado: "2026-07-07"
-orden: 1
+orden: 5
 ---
 
 ## Visión general

@@ -13,7 +13,8 @@ const secciones = [
   {
     id: "sobreMi",
     titulo: "Sobre mí",
-    descripcion: "Párrafos de presentación y stack tecnológico.",
+    descripcion:
+      "Párrafos de presentación, stack tecnológico y habilidades blandas.",
   },
   {
     id: "proyectos",
@@ -162,7 +163,9 @@ const secciones = [
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
               />
-              <p id="foto-info" class="campo-ayuda">Formatos: PNG o JPG · máx. 10 MB.</p>
+              <p id="foto-info" class="campo-ayuda">
+                Formatos: PNG o JPG · máx. 10 MB.
+              </p>
               <button id="btn-subir-foto" type="button" class="btn btn-primary"
                 >Subir y publicar foto</button
               >
@@ -866,7 +869,7 @@ const secciones = [
       telefono: string;
       social: { github: string; linkedin: string; twitter: string };
     };
-    sobreMi: { parrafos: string[]; stack: string[] };
+    sobreMi: { parrafos: string[]; stack: string[]; blandas: string[] };
     proyectos: Proyecto[];
     experiencia: Experiencia[];
     educacion: Record<string, string>[];
@@ -1808,6 +1811,11 @@ const secciones = [
         "Stack tecnológico",
         estado.sobreMi.stack,
         "Añadir tecnología",
+      ),
+      editorChips(
+        "Habilidades blandas",
+        estado.sobreMi.blandas,
+        "Añadir habilidad",
       ),
     );
     c.replaceChildren(...nodos);

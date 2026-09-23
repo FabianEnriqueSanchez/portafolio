@@ -2,8 +2,8 @@
   "perfil": {
     "nombre": "Fabián Enrique Sánchez Solano",
     "rol": "Analista de Sistemas y Desarrollador de TI",
-    "titular": "Desarrollo software, automatizo procesos y construyo APIs que mejoran la productividad de las empresas.",
-    "resumen": "Más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico. Trabajo con Python, JavaScript y Vue.js, integración de APIs REST, AWS y metodologías ágiles (Scrum).",
+    "titular": "Desarrollo software, automatizo procesos y conecto los sistemas del negocio con agentes de IA.",
+    "resumen": "Más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico. Trabajo con Python, JavaScript, Vue.js y Next.js, integración de APIs REST, servidores MCP para agentes de IA, AWS y metodologías ágiles (Scrum).",
     "ubicacion": "Santander, Colombia",
     "email": "fabienrisanchez@gmail.com",
     "telefono": "+57 302 262 4361",
@@ -16,20 +16,39 @@
   "sobreMi": {
     "parrafos": [
       "Soy Analista de Sistemas y Desarrollador de TI con más de 4 años de experiencia. Me especializo en backend, frontend y bases de datos, y disfruto convertir necesidades del negocio en software fiable que genera impacto real en la productividad.",
-      "Actualmente lidero el área de desarrollo en Grupo Ardisa, donde construyo APIs, automatizo procesos internos y doy soporte técnico avanzado. Me destaco por la resolución de problemas, la optimización de procesos y el trabajo en equipo bajo metodología Scrum."
+      "Actualmente lidero el área de desarrollo en Grupo Ardisa, donde construyo APIs, automatizo procesos internos y doy soporte técnico avanzado. Me destaco por la resolución de problemas, la optimización de procesos y el trabajo en equipo bajo metodología Scrum.",
+      "La IA es hoy parte central de cómo construyo software. Desarrollé un servidor MCP (Model Context Protocol) que expone los datos de SAP Business One a agentes de IA, de modo que el negocio consulte su información en lenguaje natural sin pasar por un informe intermedio. Y trabajo con desarrollo asistido por IA en el día a día —diseño, revisión de código, auditorías y documentación— para entregar más rápido sin renunciar al criterio técnico."
     ],
     "stack": [
       "Python",
+      "TypeScript",
       "JavaScript",
       "Vue.js",
-      "SQL / MySQL",
+      "React / Next.js",
+      "FastAPI",
+      "SQL (PostgreSQL / MariaDB)",
       "APIs REST",
+      "MCP (Model Context Protocol)",
+      "Agentes de IA",
+      "Desarrollo asistido por IA",
+      "Docker",
       "AWS (EC2)",
-      "Git",
+      "Nginx",
+      "Git / GitHub Actions",
       "Power Automate",
       "Power Apps",
       "Scrum",
       "Análisis de datos"
+    ],
+    "blandas": [
+      "Liderazgo técnico",
+      "Resolución de problemas",
+      "Comunicación con áreas no técnicas",
+      "Trabajo en equipo (Scrum)",
+      "Autonomía y toma de decisiones",
+      "Documentación y orden",
+      "Aprendizaje continuo",
+      "Orientación al usuario"
     ]
   },
   "proyectos": [
@@ -37,13 +56,7 @@
       "slug": "nexus",
       "titulo": "Nexus — Sistema centralizado de scripts empresariales",
       "descripcion": "Sistema cliente-servidor que centraliza la distribución, versionamiento, ejecución y monitoreo de scripts Python empresariales (SAP, contabilidad, cartera). Backend FastAPI con 108+ endpoints, panel administrativo en Vue.js, launcher de escritorio y despliegue con Docker. Incluye autenticación JWT/RBAC, cifrado AES-256 y rate limiting.",
-      "tags": [
-        "Python",
-        "FastAPI",
-        "Vue.js",
-        "Docker",
-        "MariaDB"
-      ],
+      "tags": ["Python", "FastAPI", "Vue.js", "Docker", "MariaDB"],
       "demo": "/demos/nexus",
       "repo": "",
       "doc": "nexus",
@@ -51,15 +64,50 @@
       "destacado": true
     },
     {
+      "slug": "taskflow",
+      "titulo": "TaskFlow — Plataforma de gestión de tareas y proyectos",
+      "descripcion": "Espacio de trabajo colaborativo self-hosted que reemplaza herramientas tipo ClickUp: jerarquía de espacios, carpetas, listas y tareas; más de 6 vistas (Kanban, Gantt, Timeline, Workload); campos personalizados con fórmulas y rollups; motor de automatizaciones de 15 disparadores y 16 acciones; formularios públicos y SSO con Microsoft 365.",
+      "tags": [
+        "Next.js 15",
+        "React 19",
+        "TypeScript",
+        "PostgreSQL",
+        "Prisma",
+        "Docker"
+      ],
+      "demo": "",
+      "repo": "",
+      "doc": "taskflow",
+      "año": "2026",
+      "destacado": true
+    },
+    {
+      "slug": "sigaf",
+      "titulo": "SIGAF — Sistema Integral de Gestión de Activos Fijos",
+      "descripcion": "PWA para el control de activos fijos empresariales: inventario, entregas y devoluciones con acta en PDF, firma y evidencia fotográfica almacenada en SharePoint. Backend FastAPI con worker Celery, frontend Vue 3 y autenticación con Microsoft Entra ID.",
+      "tags": ["Python", "FastAPI", "Celery", "Vue 3", "MariaDB", "PWA"],
+      "demo": "",
+      "repo": "",
+      "doc": "sigaf",
+      "año": "2026",
+      "destacado": true
+    },
+    {
+      "slug": "control-ingresos",
+      "titulo": "Control de Ingresos — Custodia y trazabilidad de equipos",
+      "descripcion": "Sistema web multisucursal para el ingreso, la salida y el préstamo de equipos de cómputo, con confirmación por token enviado al correo, alertas, dashboard y auditoría completa. Planificado bajo Scrum en 12 sprints y desplegado con Docker.",
+      "tags": ["FastAPI", "Vue 3", "PostgreSQL", "Docker", "Scrum"],
+      "demo": "",
+      "repo": "",
+      "doc": "control-ingresos",
+      "año": "2026",
+      "destacado": false
+    },
+    {
       "slug": "physcalc-pro",
       "titulo": "PhysCalc Pro — Calculadora de propiedades físicas",
       "descripcion": "Calculadora web interactiva para análisis de propiedades físicas industriales: calor, temperatura, presión, caudal, energía potencial y eficiencia energética. Desarrollada como caso de estudio para TecnoIndustria S.A.S.",
-      "tags": [
-        "HTML5",
-        "CSS3",
-        "JavaScript",
-        "GitHub Pages"
-      ],
+      "tags": ["HTML5", "CSS3", "JavaScript", "GitHub Pages"],
       "demo": "https://fabianenriquesanchez.github.io/PhysCalcPro/",
       "repo": "https://github.com/FabianEnriqueSanchez/PhysCalcPro",
       "doc": "physcalc-pro",
@@ -70,12 +118,7 @@
       "slug": "sistema-control",
       "titulo": "Sistema de control con Java y Arduino",
       "descripcion": "Sistema de control que integra software en Java con hardware Arduino para automatizar y optimizar procesos operativos internos.",
-      "tags": [
-        "Java",
-        "Arduino",
-        "IoT",
-        "Automatización"
-      ],
+      "tags": ["Java", "Arduino", "IoT", "Automatización"],
       "demo": "/demos/sistema-control",
       "repo": "",
       "doc": "sistema-control",
@@ -86,12 +129,7 @@
       "slug": "apis-datos",
       "titulo": "APIs y servidores de gestión de datos",
       "descripcion": "Desarrollo de APIs REST y servidores para la integración y gestión de datos empresariales, base de varias automatizaciones internas.",
-      "tags": [
-        "Python",
-        "API REST",
-        "MySQL",
-        "AWS EC2"
-      ],
+      "tags": ["Python", "API REST", "MySQL", "AWS EC2"],
       "demo": "/demos/apis-datos",
       "repo": "",
       "doc": "apis-datos",
@@ -102,11 +140,7 @@
       "slug": "automatizacion-procesos",
       "titulo": "Automatización de procesos internos",
       "descripcion": "Formularios y flujos automatizados con Power Automate y Power Apps que redujeron tiempos de soporte y optimizaron procesos del negocio.",
-      "tags": [
-        "Power Automate",
-        "Power Apps",
-        "Scrum"
-      ],
+      "tags": ["Power Automate", "Power Apps", "Scrum"],
       "demo": "/demos/automatizacion-procesos",
       "repo": "",
       "doc": "automatizacion-procesos",
@@ -205,7 +239,7 @@
   "cv": {
     "plantilla": "moderna",
     "archivoEstatico": "",
-    "perfilProfesional": "Analista de Sistemas y Desarrollador de TI con más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico avanzado. Especializado en Python, JavaScript y Vue.js, con experiencia en APIs REST, AWS y metodologías ágiles."
+    "perfilProfesional": "Analista de Sistemas y Desarrollador de TI con más de 4 años de experiencia en desarrollo backend y frontend, automatización de procesos y soporte técnico avanzado. Especializado en Python, JavaScript, Vue.js y Next.js, con experiencia en APIs REST, integración de agentes de IA mediante MCP, AWS y metodologías ágiles."
   },
   "contacto": {
     "web3formsKey": "d0d34dce-d5b7-4603-81fa-4aacae19d8c6",

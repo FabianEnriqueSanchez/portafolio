@@ -92,6 +92,13 @@ const datosCabecera: { texto: string; href: string }[] = [
         </ul>
       </section>
 
+      <section class="seccion" aria-labelledby="k-blandas">
+        <h2 id="k-blandas">Habilidades blandas</h2>
+        <ul class="blandas">
+          {sobreMi.blandas.map((h) => <li>{h}</li>)}
+        </ul>
+      </section>
+
       <section class="seccion" aria-labelledby="k-formacion">
         <h2 id="k-formacion">Formación</h2>
         <ul class="lista">
@@ -278,6 +285,26 @@ const datosCabecera: { texto: string; href: string }[] = [
     border: 1px solid var(--cv-linea);
     border-radius: 4px;
     padding: 0.08rem 0.4rem;
+  }
+
+  .blandas {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .blandas li {
+    font-size: 0.72rem;
+    color: var(--cv-gris);
+    padding-left: 0.6rem;
+    position: relative;
+  }
+
+  .blandas li::before {
+    content: "2";
+    position: absolute;
+    left: 0;
   }
 
   .lista {

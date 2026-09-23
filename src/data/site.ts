@@ -22,6 +22,14 @@ export type Proyecto = {
   destacado: boolean;
 };
 
+export type SobreMi = {
+  parrafos: string[];
+  /** Tecnologías y herramientas; se muestran como chips. */
+  stack: string[];
+  /** Habilidades blandas; se muestran junto al stack. */
+  blandas: string[];
+};
+
 export type Experiencia = {
   puesto: string;
   empresa: string;
@@ -59,7 +67,7 @@ export type ConfigCV = {
 export const PLANTILLAS_CV: PlantillaCV[] = ["moderna", "clasica", "compacta"];
 
 export const perfil = data.perfil;
-export const sobreMi = data.sobreMi;
+export const sobreMi: SobreMi = data.sobreMi;
 export const proyectos: Proyecto[] = data.proyectos;
 export const experiencia: Experiencia[] = data.experiencia;
 export const educacion: Educacion[] = data.educacion;

@@ -2,7 +2,7 @@
 titulo: "APIs y servidores de gestión de datos"
 descripcion: "APIs REST y servidores para integrar y gestionar datos empresariales."
 actualizado: "2026-07-07"
-orden: 2
+orden: 6
 ---
 
 ## Visión general
