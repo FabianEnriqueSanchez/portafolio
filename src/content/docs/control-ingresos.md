@@ -2,7 +2,7 @@
 titulo: "Control de Ingresos — Custodia y trazabilidad de equipos de cómputo"
 descripcion: "Sistema multisucursal de ingreso, salida y préstamo de equipos, con validación por token de correo y auditoría completa."
 actualizado: "2026-09-22"
-orden: 3
+orden: 4
 ---
 
 ## Visión general

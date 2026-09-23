@@ -64,6 +64,17 @@
       "destacado": true
     },
     {
+      "slug": "serve-mcp",
+      "titulo": "Serve MCP — Servidor MCP para SAP Business One",
+      "descripcion": "Servidor Model Context Protocol que expone los datos de SAP Business One sobre HANA a agentes de IA como Claude Desktop y Claude Code. 65 tools de lectura tipadas y auditadas, con paridad de consulta con la GUI de SAP: comercial, finanzas, inventario y auditoría. Modo solo lectura garantizado por un validador SQL sobre AST, whitelists y un usuario de base de datos solo-SELECT.",
+      "tags": ["Python", "MCP", "FastMCP", "SAP HANA", "Pydantic", "Docker"],
+      "demo": "",
+      "repo": "",
+      "doc": "serve-mcp",
+      "año": "2026",
+      "destacado": true
+    },
+    {
       "slug": "taskflow",
       "titulo": "TaskFlow — Plataforma de gestión de tareas y proyectos",
       "descripcion": "Espacio de trabajo colaborativo self-hosted que reemplaza herramientas tipo ClickUp: jerarquía de espacios, carpetas, listas y tareas; más de 6 vistas (Kanban, Gantt, Timeline, Workload); campos personalizados con fórmulas y rollups; motor de automatizaciones de 15 disparadores y 16 acciones; formularios públicos y SSO con Microsoft 365.",

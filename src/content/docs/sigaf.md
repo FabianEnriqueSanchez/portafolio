@@ -2,7 +2,7 @@
 titulo: "SIGAF — Sistema Integral de Gestión de Activos Fijos"
 descripcion: "PWA para el control de activos fijos: entregas, devoluciones, documentos firmados y evidencia fotográfica en SharePoint."
 actualizado: "2026-09-22"
-orden: 2
+orden: 3
 ---
 
 ## Visión general

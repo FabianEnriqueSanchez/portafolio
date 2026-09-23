@@ -2,7 +2,7 @@
 titulo: "TaskFlow — Plataforma de gestión de tareas y proyectos"
 descripcion: "Espacio de trabajo colaborativo self-hosted para equipos: jerarquía de proyectos, múltiples vistas, automatizaciones y SSO corporativo."
 actualizado: "2026-09-22"
-orden: 1
+orden: 2
 ---
 
 ## Visión general
